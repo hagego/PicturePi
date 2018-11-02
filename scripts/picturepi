@@ -1,0 +1,6 @@
+# run script for PicturePi
+# place in /opt/picturepi/bin
+/usr/bin/xhost +
+/usr/bin/sudo /bin/mkdir -p /var/log/picturepi
+/usr/bin/sudo /bin/chown picturepi:picturepi /var/log/picturepi
+/usr/bin/sudo -u picturepi /usr/bin/java -classpath '/opt/picturepi/lib/org.eclipse.paho.client.mqttv3.jar:/opt/picturepi/lib/ini4j/*:/opt/picturepi/lib/pi4j/lib/*:/opt/picturepi/lib/calendar/*:/opt/picturepi/lib/calendar/libs/*:/opt/picturepi/bin/picturepi.jar' picturepi/PicturePi &
