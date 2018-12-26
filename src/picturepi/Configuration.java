@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -50,19 +51,39 @@ class Configuration {
 		}
 		
 		log.config("configuration file was read successfully");
-		
+	}
+
+	/**
+	 * reads view data and creates them
+	 */
+	void readViewData() {
 		// read view data
+		log.config("reading view data");
+		
 		// syntax: <Viewname> = <display duration [s]>,<display start in hh:mm>-<display end in hh:mm>
 		Ini.Section views= iniFile.get("views");
 		for(Map.Entry<String,String> entry: views.entrySet() ) {
 			log.config("found view: "+entry.getKey()+"="+entry.getValue());
 			
 			// parse view settings
-			ViewData viewData = parseViewData(entry.getKey(),entry.getValue());
+			List<ViewData> viewData = parseViewData(entry.getKey(),entry.getValue());
 			if(viewData != null) {
-				viewDataList.add(viewData);
+				viewDataList.addAll(viewData);
 			}
 		}
+	}
+	
+	/**
+	 * @return if we are running on Raspberry or not
+	 */
+	boolean isRunningOnRaspberry() {
+		boolean runningOnRaspberry = true;
+		
+		if(System.getProperty("os.name").toLowerCase(Locale.ENGLISH).startsWith("windows")) {
+			runningOnRaspberry = false;
+		}
+		
+		return runningOnRaspberry;
 	}
 	
 	/**
@@ -104,6 +125,25 @@ class Configuration {
 	}
 	
 	/**
+	 * returns a double value from the ini file
+	 * @param section          section name
+	 * @param key              key name
+	 * @param defaultValue     default value that will be returned if the value cannot be found
+	 * @return                 value read from ini file or default if not found
+	 */
+	double getValue(String section,String key,double defaultValue) {
+		Ini.Section iniSection= iniFile.get(section);
+		
+		if(iniSection!=null) {
+			return iniSection.get(key,Double.class,defaultValue);
+		}
+		else {
+			log.warning("Section "+section+" not found");
+			return defaultValue;
+		}
+	}
+	
+	/**
 	 * returns a string value from the ini file
 	 * @param section          section name
 	 * @param key              key name
@@ -129,47 +169,58 @@ class Configuration {
 	 * @param data view settings from ini file in form <display duration [s]>,<display start in hh:mm>-<display end in hh:mm> 
 	 * @return ViewData object containing the parsed data or null of data could not be parsed
 	 */
-	private ViewData parseViewData(final String name,final String data) {
+	private List<ViewData> parseViewData(final String name,final String data) {
 		int pos = data.indexOf(',');
 		int duration;
 		LocalTime start,end;
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm");
+		List<ViewData> viewList  = new LinkedList<ViewData>();
+		Panel panel = null;
 		
 		if(pos!=-1) {
 			try {
 				duration = Integer.parseInt(data.substring(0, pos));
-				String displayInterval = data.substring(pos+1);
-				pos = displayInterval.indexOf('-');
-				if(pos!=-1) {
-					start = LocalTime.parse(displayInterval.substring(0, pos),format);
-					end   = LocalTime.parse(displayInterval.substring(pos+1),format);
-					
-					log.fine("parsed view data: name="+name+" duration="+duration+" start="+start+" end="+end);
-					
-					ViewData viewData = new ViewData();
-					viewData.name         = name;
-					viewData.duration     = duration;
-					viewData.displayStart = start;
-					viewData.displayEnd   = end;
-					
-					// instantiate panel object
-					try {
-						Class<?> panelClass = Class.forName("picturepi."+name);
-						viewData.panel = (Panel) panelClass.newInstance();
-					} catch (ClassNotFoundException e) {
-						log.severe("view panel class not found: "+name);
-						log.severe(e.getMessage());
-						return null;
-					} catch (IllegalAccessException | InstantiationException e) {
-						log.severe("unable to instantiate view panel class : "+name);
-						log.severe(e.getMessage());
-						return null;
+				while(pos!=-1) {
+					int endPos = data.indexOf(',',pos+1);
+					String displayInterval = endPos>=0 ? data.substring(pos+1,endPos) : data.substring(pos+1);
+					pos = displayInterval.indexOf('-');
+					if(pos!=-1) {
+						start = LocalTime.parse(displayInterval.substring(0, pos),format);
+						end   = LocalTime.parse(displayInterval.substring(pos+1),format);
+						
+						log.fine("parsed view data: name="+name+" duration="+duration+" start="+start+" end="+end);
+						
+						ViewData viewData = new ViewData();
+						viewData.name         = name;
+						viewData.duration     = duration;
+						viewData.displayStart = start;
+						viewData.displayEnd   = end;
+						
+						viewList.add(viewData);
+						pos = data.indexOf(pos+1,',');
+						
+						// instantiate panel object
+						if(panel==null) {
+							try {
+								Class<?> panelClass = Class.forName("picturepi."+name);
+								panel = (Panel) panelClass.newInstance();
+							} catch (ClassNotFoundException e) {
+								log.severe("view panel class not found: "+name);
+								log.severe(e.getMessage());
+								return null;
+							} catch (IllegalAccessException | InstantiationException e) {
+								log.severe("unable to instantiate view panel class : "+name);
+								log.severe(e.getMessage());
+								return null;
+							}
+							
+							log.fine("successfully created panel "+name);
+						}
+						viewData.panel = panel;
 					}
-					
-					log.fine("successfully created panel "+name);
-					
-					return viewData;
+					pos = endPos;
 				}
+				return viewList;
 			}
 			catch(NumberFormatException | DateTimeParseException  e) {
 			}

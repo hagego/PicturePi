@@ -74,7 +74,7 @@ public class MainWindow implements Runnable {
 	}
 
 	// private members
-	private static final Logger   log      = Logger.getLogger( TrafficProvider.class.getName() );
+	private static final Logger   log      = Logger.getLogger( MainWindow.class.getName() );
 	
 	final private        Configuration      configuration;
 	private              boolean  isFullscreen = false;

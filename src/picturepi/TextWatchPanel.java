@@ -3,6 +3,7 @@ package picturepi;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
+
 import java.awt.Color;
 import java.awt.Font;
 
@@ -24,18 +25,25 @@ class TextWatchPanel extends Panel {
 		//add(Box.createRigidArea(new Dimension(0,100)));		
 		add(Box.createVerticalGlue());
 		
-		labelTimeText = new JLabel ();
+		labelTimeTextLine1 = new JLabel ();
+		labelTimeTextLine2 = new JLabel ();
 		Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 60);
-		labelTimeText.setFont(font);
-		labelTimeText.setForeground(Color.MAGENTA.darker().darker());
-		labelTimeText.setAlignmentX(CENTER_ALIGNMENT);
-		add(labelTimeText);
+		
+		labelTimeTextLine1.setFont(font);
+		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
+		labelTimeTextLine1.setAlignmentX(CENTER_ALIGNMENT);
+		add(labelTimeTextLine1);
+		
+		labelTimeTextLine2.setFont(font);
+		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker());
+		labelTimeTextLine2.setAlignmentX(CENTER_ALIGNMENT);
+		add(labelTimeTextLine2);
 		
 		add(Box.createVerticalGlue());
 		
 		labelTime = new JLabel ();
 		labelTime.setFont(font);
-		labelTime.setForeground(Color.CYAN.darker().darker());
+		labelTime.setForeground(Color.CYAN.darker().darker().darker());
 		labelTime.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTime);
 		
@@ -54,8 +62,9 @@ class TextWatchPanel extends Panel {
 	 * sets the actual time as text
 	 * @param timeText actual time as text
 	 */
-	void setTimeText(String timeText) {
-		labelTimeText.setText(timeText);
+	void setTimeText(String timeTextLine1,String timeTextLine2) {
+		labelTimeTextLine1.setText(timeTextLine1);
+		labelTimeTextLine2.setText(timeTextLine2);
 	}
 	
 	/**
@@ -79,7 +88,8 @@ class TextWatchPanel extends Panel {
 	// 
 	private static final long serialVersionUID = 8937994138265702017L;
 	
-	private JLabel labelTimeText;   // label for time as text
-	private JLabel labelTime;       // label for standard time display
-	private JLabel labelAlarm;      // label for display of next alarm time
+	private JLabel labelTimeTextLine1;   // label for time as text, line 1
+	private JLabel labelTimeTextLine2;   // label for time as text, line 2
+	private JLabel labelTime;            // label for standard time display
+	private JLabel labelAlarm;           // label for display of next alarm time
 }
