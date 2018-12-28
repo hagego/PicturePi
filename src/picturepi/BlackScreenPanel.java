@@ -18,4 +18,12 @@ class BlackScreenPanel extends Panel {
 		setBackground(Color.BLACK);
 	}
 	
+	@Override
+	void setColorDark() {
+	}
+	
+	@Override
+	void setColorBright() {
+	}
+	
 }

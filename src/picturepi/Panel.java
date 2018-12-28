@@ -46,6 +46,16 @@ public abstract class Panel extends JPanel {
 		return isActive;
 	}
 	
+	/**
+	 * sets a dark foreground color
+	 */
+	abstract void setColorDark();
+	
+	/**
+	 * sets a bright foreground color
+	 */
+	abstract void setColorBright();
+	
 	//
 	// private members
 	//

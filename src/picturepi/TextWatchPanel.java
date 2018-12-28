@@ -58,6 +58,22 @@ class TextWatchPanel extends Panel {
 		add(Box.createVerticalGlue());
 	}
 	
+	@Override
+	void setColorDark() {
+		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
+		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker());
+		labelTime.setForeground(Color.CYAN.darker().darker());
+		labelAlarm.setForeground(Color.ORANGE.darker().darker());
+	}
+	
+	@Override
+	void setColorBright() {
+		labelTimeTextLine1.setForeground(Color.MAGENTA.brighter().brighter());
+		labelTimeTextLine2.setForeground(Color.MAGENTA.brighter().brighter());
+		labelTime.setForeground(Color.CYAN.brighter().brighter());
+		labelAlarm.setForeground(Color.ORANGE.brighter().brighter());
+	}
+	
 	/**
 	 * sets the actual time as text
 	 * @param timeText actual time as text

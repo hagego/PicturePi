@@ -182,7 +182,7 @@ public class PicturePi implements IMqttMessageListener {
 	/**
 	 * measures luminance and adopts projector brightness accordingly
 	 */
-	private void adjustBrightness() {
+	private synchronized void adjustBrightness() {
 		if(!Configuration.getConfiguration().isRunningOnRaspberry()) {
 			return;
 		}
@@ -211,9 +211,10 @@ public class PicturePi implements IMqttMessageListener {
 				// start with a simple quadratic relation
 				brightness *= brightness;
 				brightness = Integer.min(brightness, 255);
-				brightness = Integer.max(brightness, 0);
+				brightness = Integer.max(brightness, 1);
 				
 				if((byte)brightness != projectorBrightnessSetting) {
+					log.fine("adjusting projector brightness to "+brightness);
 					projectorBrightnessSetting = (byte)brightness;
 					
 					I2C_BRIGHTNESS_R[I2C_BRIGHTNESS_R.length-1] = projectorBrightnessSetting;
@@ -227,6 +228,20 @@ public class PicturePi implements IMqttMessageListener {
 					controller.write(I2C_BRIGHTNESS_B);
 					controller.write(I2C_BRIGHTNESS_SET1);
 					controller.write(I2C_BRIGHTNESS_SET2);
+					
+					// and adjust foreground colors of panels
+					List<ViewData> viewDataList = Configuration.getConfiguration().getViewDataList();
+					for(ViewData viewData:viewDataList) {
+						if(brightness>10) {
+							log.fine("adjusting foreground color to bright for panel "+viewData.name);
+							viewData.panel.setColorBright();
+						}
+						else {
+							log.fine("adjusting foreground color to dark for panel "+viewData.name);
+							viewData.panel.setColorDark();
+						}
+					}
+					
 				}
 			} catch (IOException e) {
 				log.severe("Exception during i2c write/read: "+e.getMessage());
@@ -234,7 +249,7 @@ public class PicturePi implements IMqttMessageListener {
 		}
 	}
 	
-	private void enableProjector(boolean enable) {
+	private synchronized void enableProjector(boolean enable) {
 		if(enable==projectorEnabled) {
 			// do nothing
 			return;
