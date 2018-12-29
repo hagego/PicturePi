@@ -27,14 +27,15 @@ class TextWatchPanel extends Panel {
 		
 		labelTimeTextLine1 = new JLabel ();
 		labelTimeTextLine2 = new JLabel ();
-		Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 60);
+		Font fontSmall = new Font(Font.SANS_SERIF, Font.PLAIN, 58);
+		Font fontLarge = new Font(Font.SANS_SERIF, Font.PLAIN, 68);
 		
-		labelTimeTextLine1.setFont(font);
+		labelTimeTextLine1.setFont(fontSmall);
 		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
 		labelTimeTextLine1.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTimeTextLine1);
 		
-		labelTimeTextLine2.setFont(font);
+		labelTimeTextLine2.setFont(fontSmall);
 		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker());
 		labelTimeTextLine2.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTimeTextLine2);
@@ -42,7 +43,7 @@ class TextWatchPanel extends Panel {
 		add(Box.createVerticalGlue());
 		
 		labelTime = new JLabel ();
-		labelTime.setFont(font);
+		labelTime.setFont(fontLarge);
 		labelTime.setForeground(Color.CYAN.darker().darker().darker());
 		labelTime.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTime);
@@ -50,7 +51,7 @@ class TextWatchPanel extends Panel {
 		add(Box.createVerticalGlue());
 		
 		labelAlarm = new JLabel ();
-		labelAlarm.setFont(font);
+		labelAlarm.setFont(fontSmall);
 		labelAlarm.setForeground(Color.ORANGE.darker().darker());
 		labelAlarm.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelAlarm);

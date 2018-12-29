@@ -1,6 +1,7 @@
 package picturepi;
 
 import java.io.StringReader;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
@@ -24,10 +25,12 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		// update data every second
 		super(1);
 		
+		log.info("creating TextWatchProvider object");
+		
 		// subscribe to MQTT topic to retrieve alarm list from alarm pi
-		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null); //$NON-NLS-1$ //$NON-NLS-2$
+		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null);
 		if(alarmListTopic != null) {
-			log.info("subscribing for alarmlist"); //$NON-NLS-1$
+			log.info("subscribing for alarmlist");
 			MqttClient.getMqttClient().subscribe(alarmListTopic, this);
 		}
 	}
@@ -39,7 +42,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 				textWatchpanel = (TextWatchPanel)panel;
 			}
 			else {
-				log.severe("Panel is not of class TextWatchPanel. Disabling updates."); //$NON-NLS-1$
+				log.severe("Panel is not of class TextWatchPanel. Disabling updates.");
 				
 				return;
 			}
@@ -82,25 +85,67 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 	
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
-		log.fine("MQTT message arrived: topic="+topic+" content="+message); //$NON-NLS-1$ //$NON-NLS-2$
+		log.fine("MQTT message arrived: topic="+topic+" content="+message);
 
-		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null); //$NON-NLS-1$ //$NON-NLS-2$
+		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null); 
 		if(alarmListTopic!=null && topic.equals(alarmListTopic)) {
-			log.fine("parsing alarm data"); //$NON-NLS-1$
+			log.fine("parsing alarm data");
 			
 			JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(message.toString()));
 			JsonObject jsonObject = reader.readObject();
 			
-			JsonArray alarmList = jsonObject.getJsonArray("alarms"); //$NON-NLS-1$
+			JsonArray alarmList = jsonObject.getJsonArray("alarms");
+			
+			// search if there is an alarm later today
 			for(int i=0 ; i<alarmList.size() ; i++) {
 				JsonObject alarm = alarmList.getJsonObject(i);
-				boolean enabled  = alarm.getBoolean("enabled"); //$NON-NLS-1$
-				boolean skipOnce = alarm.getBoolean("skipOnce"); //$NON-NLS-1$
+				boolean enabled  = alarm.getBoolean("enabled");
+				boolean skipOnce = alarm.getBoolean("skipOnce");
 				
 				if(enabled && !skipOnce) {
-					String time = alarm.getString("time"); //$NON-NLS-1$
+					String alarmWeekDays = alarm.getJsonString("weekDays").toString();
+					log.fine("found active alarm with weekDays: "+alarmWeekDays);
 					
-					log.fine("alarm time="+time); //$NON-NLS-1$
+					// search for alarm scheduled for today or tomorrow
+					LocalTime alarmTimeToday    = null;
+					LocalTime alarmTimeTomorrow = null;
+					String weekDayToday    = LocalDate.now().getDayOfWeek().toString();
+					String weekDayTomorrow = LocalDate.now().plusDays(1).getDayOfWeek().toString();
+					
+					if(alarmWeekDays.contains(weekDayToday)) {
+				    	String alarmTimeString = alarm.getString("time");
+				    	log.fine("found active alarm for today with time="+alarmTimeString);
+				    	
+				    	LocalTime alarmTime = LocalTime.parse(alarmTimeString, DateTimeFormatter.ofPattern("HH:mm"));
+				    	if(alarmTime.isAfter(LocalTime.now()) && (alarmTimeToday==null || alarmTime.isBefore(alarmTimeToday))) {
+				    		alarmTimeToday = alarmTime;
+				    	}
+					}
+					if(alarmWeekDays.contains(weekDayTomorrow)) {
+				    	String alarmTimeString = alarm.getString("time");
+				    	log.fine("found active alarm for tomorrow with time="+alarmTimeString);
+				    	
+				    	LocalTime alarmTime = LocalTime.parse(alarmTimeString, DateTimeFormatter.ofPattern("HH:mm"));
+				    	if(alarmTimeTomorrow==null || alarmTime.isBefore(alarmTimeTomorrow)) {
+				    		alarmTimeTomorrow = alarmTime;
+				    	}
+					}
+					
+					if(alarmTimeToday!=null) {
+						log.fine("earliest alarm for today is set for "+alarmTimeToday);
+						textWatchpanel.setAlarm("Wecker heute "+alarmTimeToday.format(DateTimeFormatter.ofPattern("HH:mm")));
+					}
+					else {
+						log.fine("No alarm found for today");
+						
+						if(alarmTimeTomorrow!=null) {
+							log.fine("earliest alarm for tomorrow is set for "+alarmTimeTomorrow);
+							textWatchpanel.setAlarm("Wecker morgen "+alarmTimeTomorrow.format(DateTimeFormatter.ofPattern("HH:mm")));
+						}
+						else {
+							textWatchpanel.setAlarm("Kein Wecker");
+						}
+					}
 				}
 			}
 		}
