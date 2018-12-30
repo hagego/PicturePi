@@ -60,6 +60,11 @@ class TextWatchPanel extends Panel {
 	}
 	
 	@Override
+	boolean hasData() {
+		return true;
+	}
+	
+	@Override
 	void setColorDark() {
 		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
 		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker());

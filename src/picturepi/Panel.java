@@ -15,6 +15,9 @@ public abstract class Panel extends JPanel {
 		
 		this.provider = provider;
 		provider.setPanel(this);
+		
+		// start provider thread
+		provider.start();
 	}
 	
 	/**
@@ -55,6 +58,11 @@ public abstract class Panel extends JPanel {
 	 * sets a bright foreground color
 	 */
 	abstract void setColorBright();
+	
+	/**
+	 * @return if this panel has data to display
+	 */
+	abstract boolean hasData();
 	
 	//
 	// private members

@@ -19,6 +19,11 @@ class BlackScreenPanel extends Panel {
 	}
 	
 	@Override
+	boolean hasData() {
+		return true;
+	}
+	
+	@Override
 	void setColorDark() {
 	}
 	

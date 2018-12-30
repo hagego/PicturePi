@@ -119,11 +119,11 @@ public class PicturePi implements IMqttMessageListener {
 //						nextView.panel.setActive(false);
 //					}
 				}
-				while (!nextView.isActive() && nextView != lastView);
+				while ((!nextView.isActive() || !nextView.panel.hasData()) && nextView != lastView);
 				
 				long sleepTime = SLEEP_TIME; 
-				if(nextView.isActive()) {
-					// active view found
+				if(nextView.isActive() && nextView.panel.hasData()) {
+					// active view found that has data to display
 					if(!scheduledViewActive) {
 						// enable projector again
 						log.info("Enabling projector again");

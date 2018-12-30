@@ -95,6 +95,11 @@ class WeatherPanel extends Panel {
 		labelForecastHighTemperature.setForeground(Color.LIGHT_GRAY.brighter().brighter());
 	}
 	
+	@Override
+	boolean hasData() {
+		return true;
+	}
+	
 	/**
 	 * sets the actual temperature
 	 * @param temperature actual temperature
