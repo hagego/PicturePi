@@ -24,10 +24,10 @@ class GarbageCollectionPanel extends Panel {
 		
 		// create empty trashBinColor
 		trashBinColors = EnumSet.noneOf(TrashBinColors.class);
-
 		EnumSet<TrashBinColors> newTrashBinColors = EnumSet.noneOf(TrashBinColors.class);
-		
 		setTrashBinColors(newTrashBinColors);
+		
+		setColorBright();
 	}
 	
 	@Override
@@ -37,10 +37,12 @@ class GarbageCollectionPanel extends Panel {
 	
 	@Override
 	void setColorDark() {
+		iconPostfix = "_dark";
 	}
 	
 	@Override
 	void setColorBright() {
+		iconPostfix = "_bright";
 	}
 	
 	void setTrashBinColors(EnumSet<TrashBinColors> newTrashBinColors) {
@@ -62,7 +64,7 @@ class GarbageCollectionPanel extends Panel {
 				String iconName = trashBinColor.toString().toLowerCase();
 			    ImageIcon icon = null;
 			    try {
-				    java.net.URL imageURL = this.getClass().getResource("trashBinIcons/"+iconName+".png");
+				    java.net.URL imageURL = this.getClass().getResource("trashBinIcons/"+iconName+iconPostfix+".png");
 				    icon = new ImageIcon(imageURL);
 				    
 					trashBinColors.add(trashBinColor);
@@ -85,6 +87,7 @@ class GarbageCollectionPanel extends Panel {
 	private static final long     serialVersionUID = 3917104997147741856L;
 	private static final Logger   log              = Logger.getLogger( GarbageCollectionPanel.class.getName() );
 
-	EnumSet<TrashBinColors> trashBinColors;      // currently displayed trashBinColors
-	JLabel[]                iconLabels;          // currently displayed icons
+	private EnumSet<TrashBinColors> trashBinColors;           // currently displayed trashBinColors
+	private String                  iconPostfix = "_bright";  // postfix added to icon filenames (_dark/_bright)
+	private JLabel[]                iconLabels;               // currently displayed icons
 }
