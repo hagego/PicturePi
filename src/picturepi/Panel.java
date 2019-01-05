@@ -15,9 +15,6 @@ public abstract class Panel extends JPanel {
 		
 		this.provider = provider;
 		provider.setPanel(this);
-		
-		// start provider thread
-		provider.start();
 	}
 	
 	/**
