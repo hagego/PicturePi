@@ -55,7 +55,7 @@ public class GarbageCollectionProvider extends Provider {
 					newTrashBinColors.add(TrashBinColors.BLUE);
 				}
 			}
-			p.setTrashBinColors(newTrashBinColors);
+			p.setTrashBinColors(newTrashBinColors,false);
 		}
 	}
 

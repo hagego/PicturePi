@@ -24,9 +24,6 @@ class GarbageCollectionPanel extends Panel {
 		
 		// create empty trashBinColor
 		trashBinColors = EnumSet.noneOf(TrashBinColors.class);
-		EnumSet<TrashBinColors> newTrashBinColors = EnumSet.noneOf(TrashBinColors.class);
-		setTrashBinColors(newTrashBinColors);
-		
 		setColorBright();
 	}
 	
@@ -38,16 +35,23 @@ class GarbageCollectionPanel extends Panel {
 	@Override
 	void setColorDark() {
 		iconPostfix = "_dark";
+		setTrashBinColors(trashBinColors.clone(),true);
 	}
 	
 	@Override
 	void setColorBright() {
 		iconPostfix = "_bright";
+		setTrashBinColors(trashBinColors.clone(),true);
 	}
 	
-	void setTrashBinColors(EnumSet<TrashBinColors> newTrashBinColors) {
-		if(trashBinColors.equals(newTrashBinColors) == false) {
-			log.fine("Trash bins to display have changed");
+	/**
+	 * sets the new trash bins to display
+	 * @param newTrashBinColors  types (colors) of trash bins to display
+	 * @param forceUpdate        if true, icons are updated also if colors are the same as before
+	 */
+	void setTrashBinColors(EnumSet<TrashBinColors> newTrashBinColors,boolean forceUpdate) {
+		if(forceUpdate || trashBinColors.equals(newTrashBinColors) == false) {
+			log.fine("Trash bins to display have changed or forceUpdate is true");
 			
 			// remove old components
 			removeAll();
