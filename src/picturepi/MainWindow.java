@@ -22,8 +22,8 @@ public class MainWindow implements Runnable {
 		log.config("reading screen configuration");
 			
 		isFullscreen = configuration.getValue("screen","fullscreen",true);
-		width        = configuration.getValue("screen","width",1280);
-		height       = configuration.getValue("screen","height",800);
+		width        = configuration.getValue("screen","width",width);
+		height       = configuration.getValue("screen","height",height);
 			
 		log.config("screen configuration: fullscreen="+isFullscreen+" width="+width+" height="+height);
 	}
@@ -54,6 +54,10 @@ public class MainWindow implements Runnable {
 			
 			mainFrame.setSize(2*width-w,2*height-h);
 		}
+		
+		int w=mainFrame.getWidth();
+		int h=mainFrame.getHeight();
+		log.config("display size: width="+w+" height="+h);
 	}
 	
 	/**

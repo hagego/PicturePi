@@ -87,7 +87,50 @@ public class PicturePi implements IMqttMessageListener {
 	private void runScheduler() {
 		// read view data from config file
 		Configuration.getConfiguration().readViewData();
+		
+		// start motion detected panel
+		String motionDetectedPanelName = Configuration.getConfiguration().getValue("screen", "motionDetectedPanel", null);
+		if(motionDetectedPanelName!=null) {
+			log.config("activating motion detected panel "+motionDetectedPanelName);
+			
+			// first check if panel already exists
+			motionDetectedPanel = null;
+			for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
+				log.fine("view has panel class: "+viewData.panel.getClass().getName());
+				if(motionDetectedPanel==null && viewData.panel.getClass().getName().equals("picturepi."+motionDetectedPanelName)) {
+					log.fine("motion detected panel already exists in scheduler");
+					motionDetectedPanel = viewData.panel;
+				}
+			}
+			
+			if(motionDetectedPanel==null) {
+				// instantiate dedicated panel object
+				try {
+					Class<?> panelClass = Class.forName("picturepi."+motionDetectedPanelName);
+					motionDetectedPanel = (Panel) panelClass.newInstance();
+				} catch (ClassNotFoundException e) {
+					log.severe("motion deteced panel class not found: "+motionDetectedPanelName);
+					log.severe(e.getMessage());
+				} catch (IllegalAccessException | InstantiationException e) {
+					log.severe("unable to instantiate motion deteced panel class : "+motionDetectedPanelName);
+					log.severe(e.getMessage());
+				}
+			}
 
+			if(motionDetectedPanel!=null) {
+				log.fine("successfully created motion deteced panel "+motionDetectedPanelName);
+			}
+		}
+		else {
+			log.warning("No view specified for motion detected");
+		}
+
+		// start provider threads
+		log.config("starting provider threads");
+		for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
+			viewData.panel.provider.start();
+		}
+				
 		List<ViewData> viewDataList = Configuration.getConfiguration().getViewDataList();
 		Iterator<ViewData> viewIterator = viewDataList.iterator();
 		
@@ -241,7 +284,6 @@ public class PicturePi implements IMqttMessageListener {
 							viewData.panel.setColorDark();
 						}
 					}
-					
 				}
 			} catch (IOException e) {
 				log.severe("Exception during i2c write/read: "+e.getMessage());
@@ -274,7 +316,7 @@ public class PicturePi implements IMqttMessageListener {
 			if(enable) {
 				try {
 					// sleep 1s until controller has booted up
-					Thread.sleep(1000);
+					Thread.sleep(800);
 				} catch (InterruptedException e) {
 					log.severe(e.getMessage());
 				}
@@ -330,33 +372,6 @@ public class PicturePi implements IMqttMessageListener {
 		
 		if(!scheduledViewActive) {
 			// no scheduled view active. Activate special panel for motion detected case
-			if(motionDetectedPanel==null) {
-				// get view to acticate
-				String motionDetectedPanelName = Configuration.getConfiguration().getValue("screen", "motionDetectedPanel", null);
-				if(motionDetectedPanelName!=null) {
-					log.fine("No scheduled view active, activating panel "+motionDetectedPanelName);
-					
-					// instantiate panel object
-					try {
-						Class<?> panelClass = Class.forName("picturepi."+motionDetectedPanelName);
-						motionDetectedPanel = (Panel) panelClass.newInstance();
-					} catch (ClassNotFoundException e) {
-						log.severe("motion deteced panel class not found: "+motionDetectedPanelName);
-						log.severe(e.getMessage());
-					} catch (IllegalAccessException | InstantiationException e) {
-						log.severe("unable to instantiate motion deteced panel class : "+motionDetectedPanelName);
-						log.severe(e.getMessage());
-					}
-
-					if(motionDetectedPanel!=null) {
-						log.fine("successfully created motion deteced panel "+motionDetectedPanelName);
-					}
-				}
-				else {
-					log.warning("No view specified for motion detected");
-				}
-			}
-			
 			if(motionDetectedPanel != null) {
 				motionDetectedPanel.setActive(true);
 				mainWindow.setPanel(motionDetectedPanel);

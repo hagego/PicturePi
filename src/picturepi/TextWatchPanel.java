@@ -2,10 +2,12 @@ package picturepi;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.util.logging.Logger;
 
 /**
  * Panel to display the current time in 24h notation and as a 1 line text
@@ -22,13 +24,10 @@ class TextWatchPanel extends Panel {
 		setBackground(Color.BLACK);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
-		//add(Box.createRigidArea(new Dimension(0,100)));		
-		add(Box.createVerticalGlue());
+		Font fontSmall = new Font(Font.SANS_SERIF, Font.BOLD, 58); // 62
+		Font fontLarge = new Font(Font.SANS_SERIF, Font.BOLD, 68); // 70
 		
-		labelTimeTextLine1 = new JLabel ();
-		labelTimeTextLine2 = new JLabel ();
-		Font fontSmall = new Font(Font.SANS_SERIF, Font.PLAIN, 58);
-		Font fontLarge = new Font(Font.SANS_SERIF, Font.PLAIN, 68);
+		add(Box.createVerticalGlue());
 		
 		labelTimeTextLine1.setFont(fontSmall);
 		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
@@ -42,7 +41,6 @@ class TextWatchPanel extends Panel {
 		
 		add(Box.createVerticalGlue());
 		
-		labelTime = new JLabel ();
 		labelTime.setFont(fontLarge);
 		labelTime.setForeground(Color.CYAN.darker().darker().darker());
 		labelTime.setAlignmentX(CENTER_ALIGNMENT);
@@ -50,13 +48,13 @@ class TextWatchPanel extends Panel {
 		
 		add(Box.createVerticalGlue());
 		
-		labelAlarm = new JLabel ();
-		labelAlarm.setFont(fontSmall);
-		labelAlarm.setForeground(Color.ORANGE.darker().darker());
-		labelAlarm.setAlignmentX(CENTER_ALIGNMENT);
-		add(labelAlarm);
+		labelOptionText.setFont(fontLarge);
+		labelOptionText.setForeground(Color.CYAN.darker().darker().darker());
+		labelOptionText.setAlignmentX(CENTER_ALIGNMENT);
+		add(labelOptionText);
 		
 		add(Box.createVerticalGlue());
+		log.fine("TextWatchPanel created");
 	}
 	
 	@Override
@@ -66,25 +64,25 @@ class TextWatchPanel extends Panel {
 	
 	@Override
 	void setColorDark() {
-		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
-		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker());
-		labelTime.setForeground(Color.CYAN.darker().darker());
-		labelAlarm.setForeground(Color.ORANGE.darker().darker());
+		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker().darker());
+		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker().darker());
+		labelTime.setForeground(Color.CYAN.darker().darker().darker());
+		labelOptionText.setForeground(Color.ORANGE.darker().darker().darker());
 	}
 	
 	@Override
 	void setColorBright() {
-		labelTimeTextLine1.setForeground(Color.MAGENTA.brighter().brighter());
-		labelTimeTextLine2.setForeground(Color.MAGENTA.brighter().brighter());
-		labelTime.setForeground(Color.CYAN.brighter().brighter());
-		labelAlarm.setForeground(Color.ORANGE.brighter().brighter());
+		labelTimeTextLine1.setForeground(Color.MAGENTA.brighter().brighter().brighter());
+		labelTimeTextLine2.setForeground(Color.MAGENTA.brighter().brighter().brighter());
+		labelTime.setForeground(Color.CYAN.brighter().brighter().brighter());
+		labelOptionText.setForeground(Color.ORANGE.brighter().brighter().brighter());
 	}
 	
 	/**
 	 * sets the actual time as text
 	 * @param timeText actual time as text
 	 */
-	void setTimeText(String timeTextLine1,String timeTextLine2) {
+	synchronized void setTimeText(String timeTextLine1,String timeTextLine2) {
 		labelTimeTextLine1.setText(timeTextLine1);
 		labelTimeTextLine2.setText(timeTextLine2);
 	}
@@ -93,25 +91,36 @@ class TextWatchPanel extends Panel {
 	 * sets the actual time 
 	 * @param time actual time
 	 */
-	void setTime(String timeText) {
+	synchronized void setTime(String timeText) {
 		labelTime.setText(timeText);
 	}
-	
+
 	/**
-	 * sets the next alarm time
-	 * @param alarmText next alarm time
+	 * sets the optional additional text line
+	 * @param text text to set
+	 * @param icon optional icon to set
 	 */
-	void setAlarm(String alarmText) {
-		labelAlarm.setText(alarmText);
+	synchronized void setOptionText(String text,ImageIcon icon) {
+		if(text!=null) {
+			labelOptionText.setText(text);
+		}
+		else {
+			labelOptionText.setText("");
+		}
+		
+		labelOptionText.setIcon(icon);
 	}
+	
+	
 
 	//
 	// private members
 	// 
 	private static final long serialVersionUID = 8937994138265702017L;
-	
-	private JLabel labelTimeTextLine1;   // label for time as text, line 1
-	private JLabel labelTimeTextLine2;   // label for time as text, line 2
-	private JLabel labelTime;            // label for standard time display
-	private JLabel labelAlarm;           // label for display of next alarm time
+	private static final Logger   log     = Logger.getLogger( TextWatchPanel.class.getName() );
+
+	private JLabel    labelTimeTextLine1 = new JLabel();   // label for time as text, line 1
+	private JLabel    labelTimeTextLine2 = new JLabel();   // label for time as text, line 2
+	private JLabel    labelTime          = new JLabel();   // label for standard time display
+	private JLabel    labelOptionText    = new JLabel();
 }

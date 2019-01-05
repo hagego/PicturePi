@@ -24,5 +24,7 @@
 	<classpathentry kind="lib" path="lib/Google/google-http-client-jackson2-1.19.0.jar"/>
 	<classpathentry kind="lib" path="lib/Google/google-oauth-client-1.19.0.jar"/>
 	<classpathentry kind="lib" path="lib/Google/jackson-core-2.1.3.jar"/>
+	<classpathentry kind="lib" path="lib/metadata-extractor/metadata-extractor-2.9.1.jar"/>
+	<classpathentry kind="lib" path="lib/metadata-extractor/xmpcore-5.1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -35,18 +35,18 @@ class WeatherPanel extends Panel {
 		labelForecastDate            = new JLabel ("Vorhersage für: --");
 		labelForecastSummary         = new JLabel("Vorhersage");
 		labelForecastIcon            = new JLabel();
-		labelForecastHighTemperature = new JLabel("Tageshöchst: --");
+		labelForecastHighTemperature = new JLabel("Höchst: --");
 		
-		Font fontBig   = new Font(Font.SANS_SERIF, Font.PLAIN, 48);
+		Font fontBig   = new Font(Font.SANS_SERIF, Font.PLAIN, 60);
 		Font fontSmall = new Font(Font.SANS_SERIF, Font.PLAIN, 32);
 		
 		labelTemperature.setFont(fontBig);
-		labelTemperature.setForeground(Color.ORANGE.darker().darker());
+		labelTemperature.setForeground(Color.MAGENTA.darker().darker());
 		labelTemperature.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTemperature);
 		
 		labelTemperatureMin.setFont(fontBig);
-		labelTemperatureMin.setForeground(Color.ORANGE.darker().darker());
+		labelTemperatureMin.setForeground(Color.MAGENTA.darker().darker());
 		labelTemperatureMin.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTemperatureMin);
 		
@@ -55,12 +55,12 @@ class WeatherPanel extends Panel {
 		labelForecastDate.setFont(fontSmall);
 		labelForecastDate.setForeground(Color.MAGENTA.darker().darker());
 		labelForecastDate.setAlignmentX(CENTER_ALIGNMENT);
-		add(labelForecastDate);
+		//add(labelForecastDate);
 		
 		labelForecastSummary.setFont(fontSmall);
-		labelForecastSummary.setForeground(Color.LIGHT_GRAY.darker().darker());
+		labelForecastSummary.setForeground(Color.CYAN.darker().darker());
 		labelForecastSummary.setAlignmentX(CENTER_ALIGNMENT);
-		add(labelForecastSummary);
+		//add(labelForecastSummary);
 		
 		labelForecastIcon.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelForecastIcon);
@@ -68,7 +68,7 @@ class WeatherPanel extends Panel {
 		add(Box.createVerticalGlue());
 		
 		labelForecastHighTemperature.setFont(fontBig);
-		labelForecastHighTemperature.setForeground(Color.LIGHT_GRAY.darker().darker());
+		labelForecastHighTemperature.setForeground(Color.CYAN.darker().darker());
 		labelForecastHighTemperature.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelForecastHighTemperature);
 		
@@ -79,20 +79,20 @@ class WeatherPanel extends Panel {
 	
 	@Override
 	void setColorDark() {
-		labelTemperature.setForeground(Color.ORANGE.darker().darker());
-		labelTemperatureMin.setForeground(Color.ORANGE.darker().darker());
+		labelTemperature.setForeground(Color.MAGENTA.darker().darker());
+		labelTemperatureMin.setForeground(Color.MAGENTA.darker().darker());
 		labelForecastDate.setForeground(Color.MAGENTA.darker().darker());
-		labelForecastSummary.setForeground(Color.LIGHT_GRAY.darker().darker());
-		labelForecastHighTemperature.setForeground(Color.LIGHT_GRAY.darker().darker());
+		labelForecastSummary.setForeground(Color.CYAN.darker().darker());
+		labelForecastHighTemperature.setForeground(Color.CYAN.darker().darker());
 	}
 	
 	@Override
 	void setColorBright() {
-		labelTemperature.setForeground(Color.ORANGE.brighter().brighter());
-		labelTemperatureMin.setForeground(Color.ORANGE.brighter().brighter());
+		labelTemperature.setForeground(Color.MAGENTA.brighter().brighter());
+		labelTemperatureMin.setForeground(Color.MAGENTA.brighter().brighter());
 		labelForecastDate.setForeground(Color.MAGENTA.brighter().brighter());
-		labelForecastSummary.setForeground(Color.LIGHT_GRAY.brighter().brighter());
-		labelForecastHighTemperature.setForeground(Color.LIGHT_GRAY.brighter().brighter());
+		labelForecastSummary.setForeground(Color.CYAN.brighter().brighter());
+		labelForecastHighTemperature.setForeground(Color.CYAN.brighter().brighter());
 	}
 	
 	@Override
@@ -136,7 +136,7 @@ class WeatherPanel extends Panel {
 	        public void run() {
 	        	labelForecastDate.setText("Vorhersage für den "+new SimpleDateFormat("dd.MM.yyyy").format(date)+":");
 	        	labelForecastSummary.setText(summary);
-	        	labelForecastHighTemperature.setText(String.format("Tageshöchst: %.0f°C",temperatureHigh));
+	        	labelForecastHighTemperature.setText(String.format("Höchst: %.0f°C",temperatureHigh));
 	        	if(icon!=null) {
 	        		labelForecastIcon.setIcon(icon);
 	        	}

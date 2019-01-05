@@ -78,6 +78,14 @@ public abstract class Provider implements Runnable {
 		
 	}
 	
+	/**
+	 * sets the provider sleep time
+	 * @param sleepTimeSeconds sleep time in seconds
+	 */
+	protected void setSleepTime(int sleepTimeSeconds) {
+		this.sleepTimeSeconds = sleepTimeSeconds;
+	}
+	
 	/*
 	 * gets called periodically to update the data
 	 */

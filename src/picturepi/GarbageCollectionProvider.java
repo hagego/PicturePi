@@ -10,7 +10,7 @@ public class GarbageCollectionProvider extends Provider {
 
 	GarbageCollectionProvider() {
 		// update data every hour
-		super(60);
+		super(3600);
 		
 		// create GoogleCalendar object and connect
 		googleCalendar = new GoogleCalendar();

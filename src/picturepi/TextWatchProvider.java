@@ -11,6 +11,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.swing.ImageIcon;
 
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -28,15 +29,26 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		log.info("creating TextWatchProvider object");
 		
 		// subscribe to MQTT topic to retrieve alarm list from alarm pi
+		displayAlarm = false;
 		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null);
 		if(alarmListTopic != null) {
 			log.info("subscribing for alarmlist");
 			MqttClient.getMqttClient().subscribe(alarmListTopic, this);
+			
+			// prepare alarm clock icon
+		    try {
+			    java.net.URL imageURL = this.getClass().getResource("otherIcons/alarmclock-with-bells.png");
+			    alarmClockIcon = new ImageIcon(imageURL);
+		    }
+		    catch(Exception e) {
+		    	log.severe("Unable to load alarm clock icon");
+		    }
+			displayAlarm = true;
 		}
 	}
 
 	@Override
-	protected void fetchData() {
+	synchronized protected void fetchData() {
 		if(textWatchpanel==null) {
 			if(panel.getClass()==TextWatchPanel.class) {
 				textWatchpanel = (TextWatchPanel)panel;
@@ -49,7 +61,17 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		}
 		
 		LocalTime time = LocalTime.now();
-		textWatchpanel.setTime(time.format(formatter));
+		textWatchpanel.setTime(time.format(timeFormatter));
+		
+		
+		if(displayAlarm==false) {
+			LocalDate date = LocalDate.now();
+			if(lastDate==null || date.equals(lastDate)==false) {
+				// new day
+				textWatchpanel.setOptionText(date.format(dateFormatter),null);
+				lastDate = date;
+			}
+		}
 		
 		// calculate index into table with time strings. Threshold to switch is always
 		// at 2m30s+n*5min
@@ -83,6 +105,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		}
 	}
 	
+	
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		log.fine("MQTT message arrived: topic="+topic+" content="+message);
@@ -96,7 +119,12 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 			
 			JsonArray alarmList = jsonObject.getJsonArray("alarms");
 			
-			// search if there is an alarm later today
+			// search for alarm scheduled for today or tomorrow
+			LocalTime alarmTimeToday    = null;
+			LocalTime alarmTimeTomorrow = null;
+			String weekDayToday    = LocalDate.now().getDayOfWeek().toString();
+			String weekDayTomorrow = LocalDate.now().plusDays(1).getDayOfWeek().toString();
+			
 			for(int i=0 ; i<alarmList.size() ; i++) {
 				JsonObject alarm = alarmList.getJsonObject(i);
 				boolean enabled  = alarm.getBoolean("enabled");
@@ -105,12 +133,6 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 				if(enabled && !skipOnce) {
 					String alarmWeekDays = alarm.getJsonString("weekDays").toString();
 					log.fine("found active alarm with weekDays: "+alarmWeekDays);
-					
-					// search for alarm scheduled for today or tomorrow
-					LocalTime alarmTimeToday    = null;
-					LocalTime alarmTimeTomorrow = null;
-					String weekDayToday    = LocalDate.now().getDayOfWeek().toString();
-					String weekDayTomorrow = LocalDate.now().plusDays(1).getDayOfWeek().toString();
 					
 					if(alarmWeekDays.contains(weekDayToday)) {
 				    	String alarmTimeString = alarm.getString("time");
@@ -130,24 +152,27 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 				    		alarmTimeTomorrow = alarmTime;
 				    	}
 					}
-					
-					if(alarmTimeToday!=null) {
-						log.fine("earliest alarm for today is set for "+alarmTimeToday);
-						textWatchpanel.setAlarm("Wecker heute "+alarmTimeToday.format(DateTimeFormatter.ofPattern("HH:mm")));
-					}
-					else {
-						log.fine("No alarm found for today");
-						
-						if(alarmTimeTomorrow!=null) {
-							log.fine("earliest alarm for tomorrow is set for "+alarmTimeTomorrow);
-							textWatchpanel.setAlarm("Wecker morgen "+alarmTimeTomorrow.format(DateTimeFormatter.ofPattern("HH:mm")));
-						}
-						else {
-							textWatchpanel.setAlarm("Kein Wecker");
-						}
-					}
 				}
 			}
+			if(alarmTimeToday!=null) {
+				log.fine("earliest alarm for today is set for "+alarmTimeToday);
+				textWatchpanel.setOptionText(" heute "+alarmTimeToday.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
+				
+				return;
+			}
+			else {
+				log.fine("No alarm found for today");
+				
+				if(alarmTimeTomorrow!=null) {
+					log.fine("earliest alarm for tomorrow is set for "+alarmTimeTomorrow);
+					textWatchpanel.setOptionText(" morgen "+alarmTimeTomorrow.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
+					
+					return;
+				}
+			}
+			
+			log.fine("No alarm found for today or tomorrow");
+			textWatchpanel.setOptionText(null,null);
 		}
 	}
 
@@ -187,8 +212,11 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
             "bis %next", //$NON-NLS-1$
             "%next" }; //$NON-NLS-1$
 
-	private       TextWatchPanel    textWatchpanel = null;    // TextWatchPanel to update
-	private       int               lastIndex = -1;           // stores index of last message displayed
-	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss"); //$NON-NLS-1$
-
+	private         TextWatchPanel    textWatchpanel = null;    // TextWatchPanel to update
+	private         int               lastIndex = -1;           // stores index of last message displayed
+	private final   DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+	private final   DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("d. MMM yyyy");
+	private         LocalDate         lastDate = null;
+	private         boolean           displayAlarm = false;     //
+	private         ImageIcon         alarmClockIcon;
 }
