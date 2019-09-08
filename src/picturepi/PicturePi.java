@@ -3,9 +3,10 @@ package picturepi;
 import java.awt.EventQueue;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -14,9 +15,13 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
+import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
+import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
@@ -34,7 +39,7 @@ public class PicturePi implements IMqttMessageListener {
 		
 		// read logging configuration file.
 		String configDir = "";
-		if(System.getProperty("os.name").toLowerCase(Locale.ENGLISH).startsWith("windows")) {
+		if(Configuration.getConfiguration().isRunningOnRaspberry() == false) {
 			// on windows development, expect configuration data in conf directory of project
 			configDir = "conf/";
 			log.info("PicturePi started, running on Windows");
@@ -61,7 +66,12 @@ public class PicturePi implements IMqttMessageListener {
 		
 		// prepare reading of .ini file with configuration data
 		String configFile = configDir+"picturepi.ini";
-		Configuration.getConfiguration().readConfigurationFile(configFile);
+		if( Configuration.getConfiguration().readConfigurationFile(configFile) == false) {
+			// configuration file could  not be read - terminate
+			log.severe("Unable to load configuration file - terminating application");
+			
+			return;
+		}
 		
 		// create MQTT client (if specified)
 		log.info("Creating MQTT client");
@@ -78,15 +88,130 @@ public class PicturePi implements IMqttMessageListener {
 			log.severe(e.getMessage());
 			
 			return;
-		} 
+		}
 		
 		// start scheduler for panel display
+		if(picturePi.screenType == null) {
+			log.severe("No valid screen type configured. Exiting...");
+			return;
+		}
+		
 		picturePi.runScheduler();
 	}
+
+	/**
+	 * private constructor
+	 */
+	private PicturePi() {
+		motionDetectedOnTime  = Configuration.getConfiguration().getValue("screen", "motionDetectedOnTime", 60);
+		motionDetectedCounter = motionDetectedOnTime*1000;
+		
+		gpioController  = Configuration.getConfiguration().isRunningOnRaspberry() ? GpioFactory.getInstance() : null;
+		
+		// configure motion detection: local PIR sensor or remote thru MQTT
+		String motionDetectionTopic = Configuration.getConfiguration().getValue("screen", "motionDetectionMqttTopic", null);
+		if(motionDetectionTopic != null) {
+			// subscribe to MQTT topic to listen for motion detection
+			log.config("motion detection is handled thru MQTT message. Topic: "+motionDetectionTopic);
+			MqttClient.getMqttClient().subscribe(motionDetectionTopic, this);
+		}
+		else {
+			log.config("no motion detection thru MQTT message.");
+		}
+		
+		int motionDetectionGpio = (int)Configuration.getConfiguration().getValue("screen", "motionDetectionGpio", -1);
+		if(Configuration.getConfiguration().isRunningOnRaspberry() && motionDetectionGpio>=0) {
+			// enable motion detection thru local GPIO
+			log.config("motion detection thru GPIO: "+motionDetectionGpio);
+			
+			gpioInPIRSensor = gpioController.provisionDigitalInputPin (RaspiPin.getPinByAddress(motionDetectionGpio), PinPullResistance.PULL_DOWN);
+			
+			// handle PIR motion sensor changes
+			if(gpioInPIRSensor.isHigh()) {
+				motionDetected = true;
+			}
+			
+			gpioInPIRSensor.addListener(new GpioPinListenerDigital() {
+	            @Override
+	            public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
+	                // display pin state on console
+	            	if(event.getState()==PinState.LOW)
+	            	{
+	            		// NO motion detected any more
+	            		log.fine("PIR motion sensor: motion cleared");
+	            	}
+	            	else {
+	            		// motion detected
+	            		log.fine("PIR motion sensor: motion detected");
+	            		
+	            		// enter motion detected period, start counter
+	            		motionDetected = true;
+	            		motionDetectedCounter = motionDetectedOnTime*1000;
+	            		
+					    enableDisplay(motionDetected);
+	            	}
+	            }
+	        });
+		}
+		else {
+			gpioInPIRSensor = null;
+		}
 	
+		// determine screen type
+		String screenTypeString = Configuration.getConfiguration().getValue("screen", "type", null);
+		log.config("screen type: "+screenTypeString);
+		
+		if(screenTypeString.equalsIgnoreCase("display")) {
+			// HDMI Display
+			log.config("Display is HDMI display. Initializing GPIO pins for display control");
+			
+			// initialize GPIO pins
+			gpioOutScreenEnable = Configuration.getConfiguration().isRunningOnRaspberry() ? gpioController.provisionDigitalOutputPin(RaspiPin.GPIO_00, "screenEnable", PinState.HIGH): null;
+			screenType = ScreenType.DISPLAY;
+		}
+		else {
+			gpioOutScreenEnable = null;
+		}
+		
+		if(Configuration.getConfiguration().isRunningOnRaspberry() && screenTypeString.equalsIgnoreCase("projector")) {
+			// EVM2000 projector
+			log.config("Display is projector. Initializing GPIO pins for projector control");
+			gpioProjectorPower = gpioController.provisionDigitalOutputPin(RaspiPin.GPIO_02);
+			screenType = ScreenType.PROJECTOR;
+		}
+		else {
+			gpioProjectorPower     = null;
+		}
+	}
 	private void runScheduler() {
-		// read view data from config file
-		Configuration.getConfiguration().readViewData();
+		// read view data from config file and create panels
+		Map<String,Panel> panelMap = new HashMap<String,Panel>();
+		for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
+			if(panelMap.get(viewData.name) == null) {
+				// new panel
+				log.fine("No panel created yet for "+viewData.name);
+				Panel panel = null;
+				
+				try {
+					Class<?> panelClass = Class.forName("picturepi."+viewData.name);
+					panel = (Panel) panelClass.newInstance();
+				} catch (ClassNotFoundException e) {
+					log.severe("view panel class not found: "+viewData.name);
+					log.severe(e.getMessage());
+				} catch (IllegalAccessException | InstantiationException e) {
+					log.severe("unable to instantiate view panel class : "+viewData.name);
+					log.severe(e.getMessage());
+				}
+				
+				log.fine("successfully created panel "+viewData.name);
+				viewData.panel = panel;
+				panelMap.put(viewData.name, panel);
+			}
+			else {
+				log.fine("re-using panel object for "+viewData.name);
+				viewData.panel = panelMap.get(viewData.name);
+			}
+		}
 		
 		// start motion detected panel
 		String motionDetectedPanelName = Configuration.getConfiguration().getValue("screen", "motionDetectedPanel", null);
@@ -122,7 +247,7 @@ public class PicturePi implements IMqttMessageListener {
 			}
 		}
 		else {
-			log.warning("No view specified for motion detected");
+			log.warning("No panel specified for motion detected");
 		}
 
 		// start provider threads
@@ -136,13 +261,6 @@ public class PicturePi implements IMqttMessageListener {
 		
 		ViewData lastView = viewIterator.next();
 		ViewData nextView;
-		
-		// subscribe to MQTT topic to listen for motion detection
-		String motionDetectionTopic = Configuration.getConfiguration().getValue("screen", "mqttTopicMotionDetection", null);
-		if(motionDetectionTopic != null) {
-			log.info("subscribing for motion detection");
-			MqttClient.getMqttClient().subscribe(motionDetectionTopic, this);
-		}
 		
 		scheduledViewActive = false;
 		do {
@@ -170,7 +288,7 @@ public class PicturePi implements IMqttMessageListener {
 					if(!scheduledViewActive) {
 						// enable projector again
 						log.info("Enabling projector again");
-						enableProjector(true);
+						enableDisplay(true);
 						scheduledViewActive = true;
 					}
 					log.fine("activating view "+nextView.name);
@@ -185,7 +303,7 @@ public class PicturePi implements IMqttMessageListener {
 					log.fine("no active view found");
 					if(scheduledViewActive) {
 						log.info("Disabling projector");
-						enableProjector(false);
+						enableDisplay(false);
 						scheduledViewActive = false;
 					}
 				}
@@ -207,7 +325,7 @@ public class PicturePi implements IMqttMessageListener {
 						if(!scheduledViewActive) {
 							// disable motion detected panel again
 							motionDetectedPanel.setActive(false);
-							enableProjector(false);
+							enableDisplay(false);
 						}
 					}
 				}
@@ -226,7 +344,7 @@ public class PicturePi implements IMqttMessageListener {
 	 * measures luminance and adopts projector brightness accordingly
 	 */
 	private synchronized void adjustBrightness() {
-		if(!Configuration.getConfiguration().isRunningOnRaspberry()) {
+		if(!Configuration.getConfiguration().isRunningOnRaspberry() || screenType!=ScreenType.PROJECTOR) {
 			return;
 		}
 		
@@ -291,18 +409,16 @@ public class PicturePi implements IMqttMessageListener {
 		}
 	}
 	
-	private synchronized void enableProjector(boolean enable) {
-		if(enable==projectorEnabled) {
+	private synchronized void enableDisplay(boolean enable) {
+		if(enable==displayEnabled) {
 			// do nothing
 			return;
 		}
 		
-		if(Configuration.getConfiguration().isRunningOnRaspberry()) {
-			if(gpioProjectorPower==null) {
-				log.info("initializing GPIO to control projector supply");
-				GpioController gpioController = GpioFactory.getInstance();
-				gpioProjectorPower = gpioController.provisionDigitalOutputPin(RaspiPin.GPIO_02);
-			}
+		log.fine("changing display enabled state to "+enable);
+		
+		// code for DSP2000 projector
+		if(Configuration.getConfiguration().isRunningOnRaspberry() && screenType==ScreenType.PROJECTOR) {
 			if(bus==null) {
 				try {
 					bus = I2CFactory.getInstance(I2CBus.BUS_3);
@@ -316,7 +432,7 @@ public class PicturePi implements IMqttMessageListener {
 			if(enable) {
 				try {
 					// sleep 1s until controller has booted up
-					Thread.sleep(800);
+					Thread.sleep(PROJECTOR_BOOT_TIME);
 				} catch (InterruptedException e) {
 					log.severe(e.getMessage());
 				}
@@ -356,9 +472,14 @@ public class PicturePi implements IMqttMessageListener {
 					log.severe("I2C Exception: "+e.getMessage());
 				}
 			}
-			
-			projectorEnabled = enable;
 		}
+		
+		// code for HDMI display
+		if(Configuration.getConfiguration().isRunningOnRaspberry() && screenType==ScreenType.DISPLAY) {
+			gpioOutScreenEnable.setState(enable ? PinState.HIGH : PinState.LOW);
+		}
+		
+		displayEnabled = enable;
 	}
 	
 	@Override
@@ -367,7 +488,6 @@ public class PicturePi implements IMqttMessageListener {
 		
 		// enter motion detected period, start counter
 		motionDetected = true;
-		motionDetectedCounter = MOTION_ON_TIME;
 		log.fine("(re-)started motion detected period");
 		
 		if(!scheduledViewActive) {
@@ -377,7 +497,7 @@ public class PicturePi implements IMqttMessageListener {
 				mainWindow.setPanel(motionDetectedPanel);
 				
 				// enable projector
-				enableProjector(true);
+				enableDisplay(true);
 				adjustBrightness();
 			}
 		}
@@ -388,14 +508,24 @@ public class PicturePi implements IMqttMessageListener {
 	
 	private MainWindow mainWindow;
 	
-	private GpioPinDigitalOutput gpioProjectorPower    = null;   // control pin for Projector power enable
+	private enum ScreenType {DISPLAY,PROJECTOR};                // possible screen types
+	private ScreenType screenType = null;                       // actual screen type
+	
 	private I2CBus 				 bus                   = null;
-	private boolean              projectorEnabled      = false;  // tracks if projector is currently enabled
+	private boolean              displayEnabled        = false;  // tracks if display is currently enabled
 	private int                  motionDetectedCounter = 0;      // ms counter to disable projector again after motion detection
 	private boolean              scheduledViewActive   = false;  // tracks if a view is active based on time schedule
 	private boolean              motionDetected        = false;  // true if we are in a motion detected period
 	private Panel                motionDetectedPanel   = null;   // Panel to display in case of motion detection
-	
+	private final int            motionDetectedOnTime;           // time in seconds to keep display on after motion is detected
+
+	// pi4j objects for GPIO
+	private final GpioController       gpioController ;        // GPIO controller instance
+	private final GpioPinDigitalOutput gpioOutScreenEnable;    // turn screen on/off, P1-11
+	private final GpioPinDigitalInput  gpioInPIRSensor;        // PIR motion sensor HC-SR501 input pint
+	private final GpioPinDigitalOutput gpioProjectorPower;     // control pin for Projector power enable
+
+	// i2c commands for projector control
 	static final byte I2C_OUTPUT_FORMAT[]    = {0x0c, 0x00, 0x00, 0x00, 0x13};
 	static final byte I2C_OUTPUT_RASPI[]     = {0x0b, 0x00, 0x00, 0x00, 0x00};
 	static final byte I2C_BRIGHTNESS_R[]     = {0x12, 0x00, 0x00, 0x00, 0x01};
@@ -404,10 +534,10 @@ public class PicturePi implements IMqttMessageListener {
 	static final byte I2C_BRIGHTNESS_SET1[]  = {0x3a, 0x00, 0x00, 0x00, 0x01};
 	static final byte I2C_BRIGHTNESS_SET2[]  = {0x38, 0x00, 0x00, 0x00, (byte)0xd3};
 	
-	private byte                 projectorBrightnessSetting = 1;  // current value for the brightness setting of the projector
+	private byte  projectorBrightnessSetting = 1;  // current value for the brightness setting of the projector
 
-	static final int SLEEP_TIME = 60000;       // sleep time for view scheduler in ms
-	static final int MOTION_ON_TIME = 600000;  // projector on time after motion detection
+	static final int SLEEP_TIME          = 60000;   // sleep time for view scheduler in ms
+	static final int PROJECTOR_BOOT_TIME = 800;     // projector on time after motion detection in ms
 }
 
 

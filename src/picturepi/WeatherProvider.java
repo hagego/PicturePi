@@ -135,11 +135,14 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 			}
 			if(weatherPanel != null && mqttTopicTemperatureMin!=null && topic.equals(mqttTopicTemperatureMin)) {
 				log.fine("Updating min temperature with "+message.toString());
-				weatherPanel.setTemperatureMin(Double.parseDouble(message.toString()));
+				// due to issues with openhab, the message contains also the unit "°C"
+				int pos = message.toString().indexOf(' ');
+				String s = pos>0 ? message.toString().substring(0, pos) : message.toString(); 
+				weatherPanel.setTemperatureMin(Double.parseDouble(s));
 			}
 		}
 		catch(Exception e) {
-			log.severe("Exception in MQTT subscrib callback: "+e.getMessage());
+			log.severe("Exception in MQTT subscribe callback: "+e.getMessage());
 		}
 	}
 

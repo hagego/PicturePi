@@ -3,8 +3,8 @@ package picturepi;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -111,7 +111,7 @@ public class PictureProvider extends Provider {
     	    }
 	    	
 	    	// add pictures for the day - if any
-	    	String day = today.format(DateTimeFormatter.ofPattern("DD"));
+	    	String day = today.format(DateTimeFormatter.ofPattern("dd"));
 	    	File dayDir = new File(monthDir,day);
 	    	log.fine("adding pictures of the day from "+dayDir);
 	    	
@@ -153,17 +153,25 @@ public class PictureProvider extends Provider {
 			int width  = (int)dimension.getWidth();
 			int height = (int)dimension.getHeight();
 			log.fine("panel dimension: "+ dimension);
+			
 			BufferedImage scaledImage = new BufferedImage(width, height,BufferedImage.TYPE_4BYTE_ABGR);
-			ImageObserver imageObserver = new ImageObserver() {
-				
-				@Override
-				public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
-					log.finest("ImageUpdate done");
-					return false;
-				}
-			};
-			Graphics2D graphics2D = scaledImage.createGraphics();
-	        boolean rc = graphics2D.drawImage(image, 0, 0, width, height, imageObserver);
+			
+			// Make sure the aspect ratio is maintained, so the image is not distorted
+	        double thumbRatio = (double) width / (double) height;
+	        int imageWidth = image.getWidth(null);
+	        int imageHeight = image.getHeight(null);
+	        double aspectRatio = (double) imageWidth / (double) imageHeight;
+
+	        if (thumbRatio < aspectRatio) {
+	            height = (int) (width / aspectRatio);
+	        } else {
+	            width = (int) (height * aspectRatio);
+	        }
+
+	        // Draw the scaled image
+	        Graphics2D graphics2D = scaledImage.createGraphics();
+	        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+	        boolean rc = graphics2D.drawImage(image, 0, 0, width, height, null);
 	        log.finest("drawImage returned "+rc);
 	        graphics2D.dispose();
 	        

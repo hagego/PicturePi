@@ -5,6 +5,7 @@
 	<classpathentry kind="src" path="lib/jsonp-jsonp-1.1.2/impl/src/main/java"/>
 	<classpathentry kind="src" path="lib/jsonp-jsonp-1.1.2/impl/src/main/resources"/>
 	<classpathentry kind="src" path="lib/darksky-forecast-api-1.3.1/darksky-forecast-api/src/main/java"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/ini4j-0.5.4/ini4j-0.5.4-jdk14.jar"/>
 	<classpathentry kind="lib" path="lib/ini4j-0.5.4/ini4j-0.5.4.jar"/>
@@ -26,5 +27,7 @@
 	<classpathentry kind="lib" path="lib/Google/jackson-core-2.1.3.jar"/>
 	<classpathentry kind="lib" path="lib/metadata-extractor/metadata-extractor-2.9.1.jar"/>
 	<classpathentry kind="lib" path="lib/metadata-extractor/xmpcore-5.1.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
+	<classpathentry kind="lib" path="lib/hamcrest-all-1.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

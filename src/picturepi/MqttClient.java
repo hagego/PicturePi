@@ -115,7 +115,7 @@ public class MqttClient implements MqttCallbackExtended{
 		// in case of reconnect loop over all topics and subscribe again
 		if(reconnect) {
 			for(Topic topic:topicList) {
-				log.fine("subscribing to MQTT topic "+topic.topic);
+				log.info("re-subscribing to MQTT topic "+topic.topic);
 				
 				// subscribe
 				try {
