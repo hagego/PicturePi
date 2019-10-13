@@ -103,60 +103,8 @@ public class PicturePi implements IMqttMessageListener {
 	 * private constructor
 	 */
 	private PicturePi() {
-		motionDetectedOnTime  = Configuration.getConfiguration().getValue("screen", "motionDetectedOnTime", 60);
-		motionDetectedCounter = motionDetectedOnTime*1000;
-		
 		gpioController  = Configuration.getConfiguration().isRunningOnRaspberry() ? GpioFactory.getInstance() : null;
 		
-		// configure motion detection: local PIR sensor or remote thru MQTT
-		String motionDetectionTopic = Configuration.getConfiguration().getValue("screen", "motionDetectionMqttTopic", null);
-		if(motionDetectionTopic != null) {
-			// subscribe to MQTT topic to listen for motion detection
-			log.config("motion detection is handled thru MQTT message. Topic: "+motionDetectionTopic);
-			MqttClient.getMqttClient().subscribe(motionDetectionTopic, this);
-		}
-		else {
-			log.config("no motion detection thru MQTT message.");
-		}
-		
-		int motionDetectionGpio = (int)Configuration.getConfiguration().getValue("screen", "motionDetectionGpio", -1);
-		if(Configuration.getConfiguration().isRunningOnRaspberry() && motionDetectionGpio>=0) {
-			// enable motion detection thru local GPIO
-			log.config("motion detection thru GPIO: "+motionDetectionGpio);
-			
-			gpioInPIRSensor = gpioController.provisionDigitalInputPin (RaspiPin.getPinByAddress(motionDetectionGpio), PinPullResistance.PULL_DOWN);
-			
-			// handle PIR motion sensor changes
-			if(gpioInPIRSensor.isHigh()) {
-				motionDetected = true;
-			}
-			
-			gpioInPIRSensor.addListener(new GpioPinListenerDigital() {
-	            @Override
-	            public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-	                // display pin state on console
-	            	if(event.getState()==PinState.LOW)
-	            	{
-	            		// NO motion detected any more
-	            		log.fine("PIR motion sensor: motion cleared");
-	            	}
-	            	else {
-	            		// motion detected
-	            		log.fine("PIR motion sensor: motion detected");
-	            		
-	            		// enter motion detected period, start counter
-	            		motionDetected = true;
-	            		motionDetectedCounter = motionDetectedOnTime*1000;
-	            		
-					    enableDisplay(motionDetected);
-	            	}
-	            }
-	        });
-		}
-		else {
-			gpioInPIRSensor = null;
-		}
-	
 		// determine screen type
 		String screenTypeString = Configuration.getConfiguration().getValue("screen", "type", null);
 		log.config("screen type: "+screenTypeString);
@@ -181,6 +129,74 @@ public class PicturePi implements IMqttMessageListener {
 		}
 		else {
 			gpioProjectorPower     = null;
+		}
+		
+		enableDisplay(false);
+		
+		// configure motion detection: local PIR sensor or remote thru MQTT
+		String motionDetectionTopic = Configuration.getConfiguration().getValue("screen", "motionDetectionMqttTopic", null);
+		if(motionDetectionTopic != null) {
+			// subscribe to MQTT topic to listen for motion detection
+			log.config("motion detection is handled thru MQTT message. Topic: "+motionDetectionTopic);
+			MqttClient.getMqttClient().subscribe(motionDetectionTopic, this);
+		}
+		else {
+			log.config("no motion detection thru MQTT message.");
+		}
+		
+		int motionDetectionGpio = (int)Configuration.getConfiguration().getValue("screen", "motionDetectionGpio", -1);
+		if(Configuration.getConfiguration().isRunningOnRaspberry() && motionDetectionGpio>=0) {
+			// enable motion detection thru local GPIO
+			log.config("motion detection thru GPIO: "+motionDetectionGpio);
+			
+			gpioInPIRSensor = gpioController.provisionDigitalInputPin (RaspiPin.getPinByAddress(motionDetectionGpio), PinPullResistance.OFF);
+			
+			// handle PIR motion sensor changes
+			if(gpioInPIRSensor.isHigh()) {
+				log.fine("PIR motion sensor initial state is high");
+				motionDetected       = true;
+				motionDetectedPeriod = true;
+				
+				// initialize display timer
+				displayOnCounter = Configuration.getConfiguration().getValue("screen", "motionDetectedOnTime", 60)*1000;
+    			log.fine("initializing display timer to "+displayOnCounter+" ms");
+			}
+			else {
+				log.fine("PIR motion sensor initial state is low");
+				motionDetected       = false;
+				motionDetectedPeriod = false;
+			}
+			
+			gpioInPIRSensor.addListener(new GpioPinListenerDigital() {
+	            @Override
+	            public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
+	                // display pin state on console
+	            	if(event.getState()==PinState.LOW)
+	            	{
+	            		// NO motion detected any more
+	            		log.fine("PIR motion sensor: motion cleared");
+	            		motionDetected =  false;
+	            		
+	        			// (re-)start timer
+	        			displayOnCounter = Configuration.getConfiguration().getValue("screen", "motionDetectedOnTime", 60)*1000;
+	        			log.fine("restarting display timer to "+displayOnCounter+" ms");
+	            	}
+	            	else {
+	            		// motion detected
+	            		log.fine("PIR motion sensor: motion detected");
+	            		motionDetected       = true;
+	            		motionDetectedPeriod = true;
+	            		
+	    				if(screenType==ScreenType.PROJECTOR || scheduledViewActive) {
+		            		// enter motion detected period
+						    enableDisplay(motionDetectedPeriod);
+	    				}
+	            	}
+	            }
+	        });
+		}
+		else {
+			gpioInPIRSensor = null;
 		}
 	}
 	private void runScheduler() {
@@ -286,10 +302,18 @@ public class PicturePi implements IMqttMessageListener {
 				if(nextView.isActive() && nextView.panel.hasData()) {
 					// active view found that has data to display
 					if(!scheduledViewActive) {
-						// enable projector again
-						log.info("Enabling projector again");
-						enableDisplay(true);
+						// scheduled views become active again (they were inactive before)
+						log.info("scheduled view period started");
 						scheduledViewActive = true;
+						
+						if(screenType==ScreenType.PROJECTOR) {
+							// in case of projector, enable again (regardless of motion detection)
+							enableDisplay(true);
+						}
+						if(screenType==ScreenType.DISPLAY ) {
+							// in case of HDMI, only enable if motion is detected
+							enableDisplay(motionDetectedPeriod);
+						}
 					}
 					log.fine("activating view "+nextView.name);
 					
@@ -302,30 +326,37 @@ public class PicturePi implements IMqttMessageListener {
 					// no active view found. Sleep a minute and try again
 					log.fine("no active view found");
 					if(scheduledViewActive) {
-						log.info("Disabling projector");
 						enableDisplay(false);
 						scheduledViewActive = false;
 					}
 				}
 				
-				if(scheduledViewActive || motionDetected) {
+				if(scheduledViewActive || motionDetectedPeriod) {
 					adjustBrightness();
 				}
 			
 				Thread.sleep(sleepTime);
 				
-				if(motionDetected) {
-					// we are in a motion detected period
-					motionDetectedCounter -= sleepTime;
-					if(motionDetectedCounter<=0) {
+				if(motionDetectedPeriod) {
+					// we are in a motion detected period. Check if it is time to disable again
+					if(motionDetected==false) {
+						displayOnCounter -= sleepTime;
+					}
+					if(displayOnCounter<=0) {
 						// motion detected period end
 						log.fine("motion detected period end");
-						motionDetected = false;
+						motionDetectedPeriod = false;
 						
-						if(!scheduledViewActive) {
-							// disable motion detected panel again
-							motionDetectedPanel.setActive(false);
-							enableDisplay(false);
+						if(screenType==ScreenType.DISPLAY) {
+							enableDisplay(motionDetectedPeriod);
+						}
+						
+						if(screenType==ScreenType.PROJECTOR) {
+							if(!scheduledViewActive) {
+								// disable motion detected panel again
+								motionDetectedPanel.setActive(false);
+								enableDisplay(false);
+							}
 						}
 					}
 				}
@@ -487,7 +518,7 @@ public class PicturePi implements IMqttMessageListener {
 		log.fine("MQTT message arrived: topic="+topic+" content="+message);
 		
 		// enter motion detected period, start counter
-		motionDetected = true;
+		motionDetectedPeriod = true;
 		log.fine("(re-)started motion detected period");
 		
 		if(!scheduledViewActive) {
@@ -512,12 +543,14 @@ public class PicturePi implements IMqttMessageListener {
 	private ScreenType screenType = null;                       // actual screen type
 	
 	private I2CBus 				 bus                   = null;
-	private boolean              displayEnabled        = false;  // tracks if display is currently enabled
-	private int                  motionDetectedCounter = 0;      // ms counter to disable projector again after motion detection
+	private boolean              displayEnabled        = true;   // tracks if display is currently enabled. Must have initial value of true
 	private boolean              scheduledViewActive   = false;  // tracks if a view is active based on time schedule
-	private boolean              motionDetected        = false;  // true if we are in a motion detected period
+
+	private boolean              motionDetected        = false;  // reflects if motion sensor currently detects motion
+	private boolean              motionDetectedPeriod  = false;  // reflects if we are in a motion detected period or not
+	private int                  displayOnCounter      = 0;      // ms counter to disable projector again after motion detection
 	private Panel                motionDetectedPanel   = null;   // Panel to display in case of motion detection
-	private final int            motionDetectedOnTime;           // time in seconds to keep display on after motion is detected
+	
 
 	// pi4j objects for GPIO
 	private final GpioController       gpioController ;        // GPIO controller instance

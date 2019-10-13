@@ -110,15 +110,12 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 			    log.fine("daily foreccast temperature high: "+temperatureHigh);
 
 			    ImageIcon icon = null;
-			    try {
-				    java.net.URL imageURL = this.getClass().getResource("weatherIcons/"+iconName+".png");
+				java.net.URL imageURL = this.getClass().getResource("weatherIcons/"+iconName+".png");
+				if(imageURL!=null) {
 				    icon = new ImageIcon(imageURL);
-			    }
-			    catch(Exception e) {
-			    	log.severe("Unable to load forecast icon: "+iconName);
-			    }
-			    
-			    weatherPanel.setForecast(forecastDate, summary, temperatureHigh,icon);
+				}
+				
+				weatherPanel.setForecast(forecastDate, summary, temperatureHigh,icon);
 			} catch (ForecastException | UnsupportedEncodingException e) {
 				log.severe("Exception during forecast retrieval or parsing: "+e.getMessage());
 			}

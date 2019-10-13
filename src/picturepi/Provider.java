@@ -20,10 +20,10 @@ public abstract class Provider implements Runnable {
 	/*
 	 * sets the panel belonging to this provider
 	 */
-	void setPanel(Panel panel) {
+	protected void setPanel(Panel panel) {
 		this.panel = panel;
 	}
-
+	
 	/**
 	 * starts the provider thread
 	 */
