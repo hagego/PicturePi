@@ -21,34 +21,37 @@ class TextWatchPanel extends Panel {
 	public TextWatchPanel() {
 		super(new TextWatchProvider());
 		
+		int fontSizeText = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeText", 70);
+		int fontSizeTime = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeTime", 70);
+		
 		setBackground(Color.BLACK);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
-		Font fontSmall = new Font(Font.SANS_SERIF, Font.BOLD, 58); // 62
-		Font fontLarge = new Font(Font.SANS_SERIF, Font.BOLD, 68); // 70
+		Font fontText = new Font(Font.SANS_SERIF, Font.BOLD, fontSizeText);
+		Font fontTime = new Font(Font.SANS_SERIF, Font.BOLD, fontSizeTime);
 		
 		add(Box.createVerticalGlue());
 		
-		labelTimeTextLine1.setFont(fontSmall);
+		labelTimeTextLine1.setFont(fontText);
 		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
 		labelTimeTextLine1.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTimeTextLine1);
 		
-		labelTimeTextLine2.setFont(fontSmall);
+		labelTimeTextLine2.setFont(fontText);
 		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker());
 		labelTimeTextLine2.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTimeTextLine2);
 		
 		add(Box.createVerticalGlue());
 		
-		labelTime.setFont(fontLarge);
+		labelTime.setFont(fontTime);
 		labelTime.setForeground(Color.CYAN.darker().darker().darker());
 		labelTime.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTime);
 		
 		add(Box.createVerticalGlue());
 		
-		labelOptionText.setFont(fontLarge);
+		labelOptionText.setFont(fontTime);
 		labelOptionText.setForeground(Color.CYAN.darker().darker().darker());
 		labelOptionText.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelOptionText);

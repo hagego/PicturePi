@@ -6,6 +6,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -22,24 +23,25 @@ import org.w3c.dom.Node;
  */
 public class EfaDepartureMonitorProvider extends Provider {
 	
-	// local class with departure information
+	// nested local class with departure information
 	public class DepartureInformation{
 		String    destination;    // destination
 		LocalTime scheduledTime;  // scheduler departure time
 		LocalTime realTime;       // realtime departure time
+		Long      waitTime;       // time in minutes to wait
 	}
 
 	/**
 	 * constructor
 	 */
 	EfaDepartureMonitorProvider() {
-		super(120);
+		super(Configuration.getConfiguration().getValue(EfaDepartureMonitorPanel.class.getSimpleName(), "refreshInterval", 90));
 		
 		// get configuration data
 		String section = EfaDepartureMonitorPanel.class.getSimpleName();
 		baseUrl = Configuration.getConfiguration().getValue(section, "url", null);
 		if(baseUrl==null) {
-			log.severe("No value for url found in configuration file");
+			log.severe("No value for EFA url found in configuration file");
 			
 			return;
 		}
@@ -233,10 +235,35 @@ public class EfaDepartureMonitorProvider extends Provider {
 	 */
 	@Override
 	protected void fetchData() {
-		// TODO Auto-generated method stub
+		if(efaDeparturePanel==null) {
+			if(panel.getClass()==EfaDepartureMonitorPanel.class) {
+				efaDeparturePanel = (EfaDepartureMonitorPanel)panel;
+			}
+			else {
+				log.severe("Panel is not of class EfaDepartureMonitorPanel. Disabling updates.");
+				
+				return;
+			}
+		}
 		
-		// http://efastatic.vvs.de/OpenVVSDay/XML_DM_REQUEST?laguage=de&typeInfo_dm=stopID&nameInfo_dm=Cafe%20Stoll&deleteAssignedStops_dm=1&useRealtime=1&mode=direct
+		InputStream inputStream = getResponseStream("http://efastatic.vvs.de/OpenVVSDay", stopPointName);
 		
+		if(inputStream != null) {
+			List<EfaDepartureMonitorProvider.DepartureInformation> departureList = getDepartureList(inputStream);
+			if(departureList!=null) {
+				// calculate delay for each departure
+				for(DepartureInformation departureInformation : departureList) {
+					// calculate time in minutes from now on
+					if(departureInformation.realTime != null) {
+						departureInformation.waitTime = LocalTime.now().until(departureInformation.realTime, ChronoUnit.MINUTES);
+					}
+					else {
+						departureInformation.waitTime = LocalTime.now().until(departureInformation.scheduledTime, ChronoUnit.MINUTES);
+					}
+				}
+				efaDeparturePanel.setDepartureInfo(departureList);
+			}
+		}
 	}
 	
 	//
@@ -246,7 +273,6 @@ public class EfaDepartureMonitorProvider extends Provider {
 
 	private String  baseUrl       = null;  // EFA server URL for XML_DM_REQUEST query
 	private String  stopPointName = null;  // name of the stop point, read from configuration file
-	private Integer stopPointId   = null;  // stop point ID, extracted from first successful response
 
-	private EfaDepartureMonitorPanel    panel = null;    // associated panel to update
+	private EfaDepartureMonitorPanel   efaDeparturePanel = null;    // associated panel to update
 }
