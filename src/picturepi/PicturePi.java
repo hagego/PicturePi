@@ -33,7 +33,7 @@ import picturepi.Configuration.ViewData;
 /**
  * Main application class for PicturePi
  */
-public class PicturePi implements IMqttMessageListener {
+public class PicturePi implements IMqttMessageListener,Runnable {
 	
 	public static void main(String[] args) {
 		
@@ -96,7 +96,12 @@ public class PicturePi implements IMqttMessageListener {
 			return;
 		}
 		
-		picturePi.runScheduler();
+		// start the scheduler as different thread
+		Thread t = new Thread(picturePi);
+		picturePi.setSchedulerThread(t);
+		t.start();
+		
+		log.config("main thread end");
 	}
 
 	/**
@@ -199,7 +204,20 @@ public class PicturePi implements IMqttMessageListener {
 			gpioInPIRSensor = null;
 		}
 	}
-	private void runScheduler() {
+	
+	/**
+	 * sets the thread object that is running the scheduler
+	 * @param thread thread object running the scheduler
+	 */
+	void setSchedulerThread(Thread thread) {
+		schedulerThread = thread;
+	}
+	
+	
+	@Override
+	public void run() {
+		log.config("scheduler started");
+		
 		// read view data from config file and create panels
 		Map<String,Panel> panelMap = new HashMap<String,Panel>();
 		for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
@@ -266,10 +284,13 @@ public class PicturePi implements IMqttMessageListener {
 			log.warning("No panel specified for motion detected");
 		}
 
-		// start provider threads
-		log.config("starting provider threads");
+		// set panels active to start provider threads
+		log.config("starting provider threads on active views");
 		for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
-			viewData.panel.provider.start();
+			viewData.panel.setSchedulerThread(schedulerThread);
+			if(viewData.isActive()) {
+				viewData.panel.setActive(true);
+			}
 		}
 				
 		List<ViewData> viewDataList = Configuration.getConfiguration().getViewDataList();
@@ -290,17 +311,27 @@ public class PicturePi implements IMqttMessageListener {
 					}
 					nextView = viewIterator.next();
 					
-//					// ensure that providers of inactive views are stopped
-//					if(!nextView.isActive() && nextView.panel.isActive()) {
-//						log.fine("deactivating view "+nextView.name);
-//						nextView.panel.setActive(false);
-//					}
+					// ensure that providers of inactive views are stopped
+					if(!nextView.isActive() && nextView.panel.isActive()) {
+						log.fine("de-activating view "+nextView.name);
+						nextView.panel.setActive(false);
+					}
+					
+					// ensure that providers get started if view just gets active again
+					if(nextView.isActive() && !nextView.panel.isActive()) {
+						// panel just got activated again. re-start provider.
+						log.fine("re-activating view "+nextView.name);
+						nextView.panel.setActive(true);
+					}
 				}
 				while ((!nextView.isActive() || !nextView.panel.hasData()) && nextView != lastView);
 				
 				long sleepTime = SLEEP_TIME; 
 				if(nextView.isActive() && nextView.panel.hasData()) {
-					// active view found that has data to display
+					// active view found that has data to display or is not active yet
+					// (if panel is not active, provider is not started so it cannot have data)
+					
+					
 					if(!scheduledViewActive) {
 						// scheduled views become active again (they were inactive before)
 						log.info("scheduled view period started");
@@ -317,7 +348,6 @@ public class PicturePi implements IMqttMessageListener {
 					}
 					log.fine("activating view "+nextView.name);
 					
-					nextView.panel.setActive(true);
 					mainWindow.setPanel(nextView.panel);
 					
 					sleepTime = nextView.duration*1000;
@@ -550,6 +580,8 @@ public class PicturePi implements IMqttMessageListener {
 	private boolean              motionDetectedPeriod  = false;  // reflects if we are in a motion detected period or not
 	private int                  displayOnCounter      = 0;      // ms counter to disable projector again after motion detection
 	private Panel                motionDetectedPanel   = null;   // Panel to display in case of motion detection
+	
+	private Thread               schedulerThread       = null;   // thread object that is running the scheduler
 	
 
 	// pi4j objects for GPIO

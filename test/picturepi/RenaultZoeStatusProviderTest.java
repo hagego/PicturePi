@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class EfaDepartureMonitorProviderTest {
+class RenaultZoeStatusProviderTest {
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
@@ -33,34 +33,14 @@ class EfaDepartureMonitorProviderTest {
 
 	@BeforeEach
 	void setUp() throws Exception {
-		provider = new EfaDepartureMonitorProvider();
+		provider = new RenaultZoeStatusProvider();
 	}
 
 	@Test
-	void testEfaDepartureMonitorProvider() {
-		new EfaDepartureMonitorProvider(); 
-		assertTrue(true);
+	void testLoginWithInvalidUser() {
+		assertFalse(provider.login("dummy", "user")); 
 	}
 	
-	@Test
-	void testGetResponseStreamWithInvalidServer() {
-		assertThat(provider.getHttpRequestResponseStream("http://my.dummy.server", ""), is(nullValue()));
-	}
-	
-	@Test
-	void testGetResponseStreamWithValidData() {
-		assertThat(provider.getHttpRequestResponseStream("http://efastatic.vvs.de/OpenVVSDay", "cafe stoll"), is(notNullValue()));
-	}
-	
-	@Test
-	void testGetDepartureListWithValidData() {
-		InputStream inputStream = provider.getHttpRequestResponseStream("http://efastatic.vvs.de/OpenVVSDay", "cafe stoll");
-		List<EfaDepartureMonitorProvider.DepartureInformation> departureList = provider.getDepartureList(inputStream);
-		
-		assertThat(departureList,is(notNullValue()));
-		assertThat(departureList,hasSize(greaterThan(0)));
-	}
-	
-	//
-	EfaDepartureMonitorProvider provider;
+	// private members
+	private RenaultZoeStatusProvider provider;
 }

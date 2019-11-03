@@ -20,13 +20,13 @@ public class EfaDepartureMonitorPanel extends Panel {
 		setLayout(new GridBagLayout());
 		
 		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridwidth  = 3;
+		constraints.gridwidth  = 4;
 		constraints.gridheight = 1;
 		constraints.gridx = 0;
 		constraints.gridy = 0;
 		constraints.insets = new Insets(10, 50, 50, 10);
 		constraints.anchor = GridBagConstraints.WEST;
-		constraints.weightx = 0.5;
+		constraints.weightx = 0.1;
 		
 		Font font = new Font(Font.SANS_SERIF, Font.BOLD, 50);
 		
@@ -65,7 +65,10 @@ public class EfaDepartureMonitorPanel extends Panel {
 			labelDestination[departure].setFont(font);
 			labelDestination[departure].setForeground(Color.BLUE);
 			constraints.gridx = 3;
+			constraints.weightx = 0.9;
 			add(labelDestination[departure],constraints);
+			
+			constraints.weightx = 0.1;
 		}
 		
 		log.fine("EfaDepartureMonitorPanel created");
@@ -111,7 +114,12 @@ public class EfaDepartureMonitorPanel extends Panel {
 			}
 			
 			labelWaitTime[departure].setText(departureList.get(departure).waitTime+" min");
-			labelDestination[departure].setText(departureList.get(departure).destination);
+			
+			String destination = departureList.get(departure).destination;
+			if(destination.length()>20 ) {
+				destination = destination.substring(0, 20);
+			}
+			labelDestination[departure].setText(destination);
 		}
 	}
 

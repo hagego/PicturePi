@@ -12,6 +12,8 @@ public class GarbageCollectionProvider extends Provider {
 		// update data every hour
 		super(3600);
 		
+		log.fine("GarbageCollectionProvider created");
+		
 		// create GoogleCalendar object and connect
 		googleCalendar = new GoogleCalendar();
 		if( googleCalendar.connect() == false) {

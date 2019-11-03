@@ -37,6 +37,8 @@ public class EfaDepartureMonitorProvider extends Provider {
 	EfaDepartureMonitorProvider() {
 		super(Configuration.getConfiguration().getValue(EfaDepartureMonitorPanel.class.getSimpleName(), "refreshInterval", 90));
 		
+		log.fine("EfaDepartureMonitorProvider created");
+		
 		// get configuration data
 		String section = EfaDepartureMonitorPanel.class.getSimpleName();
 		baseUrl = Configuration.getConfiguration().getValue(section, "url", null);
@@ -67,7 +69,7 @@ public class EfaDepartureMonitorProvider extends Provider {
 	 * @param stopPointName  name of stop point ("Haltestelle")
 	 * @return InputStream with the server response or null in case of error
 	 */
-	InputStream getResponseStream(String baseUrl,String stopPointName) {
+	InputStream getHttpRequestResponseStream(String baseUrl,String stopPointName) {
 		if(baseUrl==null || stopPointName==null) {
 			log.severe("executeRequest: method parameters are null");
 			return null;
@@ -246,7 +248,7 @@ public class EfaDepartureMonitorProvider extends Provider {
 			}
 		}
 		
-		InputStream inputStream = getResponseStream("http://efastatic.vvs.de/OpenVVSDay", stopPointName);
+		InputStream inputStream = getHttpRequestResponseStream("http://efastatic.vvs.de/OpenVVSDay", stopPointName);
 		
 		if(inputStream != null) {
 			List<EfaDepartureMonitorProvider.DepartureInformation> departureList = getDepartureList(inputStream);

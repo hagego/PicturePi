@@ -26,7 +26,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		// update data every second
 		super(1);
 		
-		log.info("creating TextWatchProvider object");
+		log.fine("TextWatchProvider created");
 		
 		// subscribe to MQTT topic to retrieve alarm list from alarm pi
 		displayAlarm = false;

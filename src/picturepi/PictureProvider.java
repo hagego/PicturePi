@@ -34,7 +34,7 @@ public class PictureProvider extends Provider {
 	PictureProvider() {
 		// fetch new picture every minute
 		super(60);
-		log.fine("PictureProvider started");
+		log.fine("PictureProvider created");
 		
 		int refreshInterval = Configuration.getConfiguration().getValue("PicturePanel", "refreshInterval", 60);
 		log.config("refresh interval="+refreshInterval);

@@ -37,6 +37,14 @@ public abstract class Panel extends JPanel {
 	}
 	
 	/**
+	 * sets the Thread object that is running the scheduler
+	 * @param thread thread object running the scheduler
+	 */
+	void setSchedulerThread(Thread thread) {
+		provider.setSchedulerThread(thread);
+	}
+	
+	/**
 	 * returns if this panel is currently active or not
 	 * active means the panel can be displayed now, but not necessarily that it
 	 * is currently being displayed
@@ -66,6 +74,6 @@ public abstract class Panel extends JPanel {
 	//
 	private static final long serialVersionUID = -3111174588868454448L;
 	
-	protected Provider provider = null;    // data provider for this panel
-	protected boolean  isActive = false;   // flags if this panel is currently active or not
+	protected Provider provider = null;         // data provider for this panel
+	protected boolean  isActive = false;        // flags if this panel is currently active or not
 }

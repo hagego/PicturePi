@@ -24,6 +24,9 @@ class WeatherPanel extends Panel {
 	public WeatherPanel() {
 		super(new WeatherProvider());
 		
+		int fontSizeText        = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeText", 32);
+		int fontSizeTemperature = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeTemperature", 60);
+		
 		setBackground(Color.BLACK);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
@@ -37,27 +40,27 @@ class WeatherPanel extends Panel {
 		labelForecastIcon            = new JLabel();
 		labelForecastHighTemperature = new JLabel("Höchst: --");
 		
-		Font fontBig   = new Font(Font.SANS_SERIF, Font.PLAIN, 60);
-		Font fontSmall = new Font(Font.SANS_SERIF, Font.PLAIN, 32);
+		Font fontText        = new Font(Font.SANS_SERIF, Font.PLAIN, fontSizeText);
+		Font fontTemperature = new Font(Font.SANS_SERIF, Font.PLAIN, fontSizeTemperature);
 		
-		labelTemperature.setFont(fontBig);
+		labelTemperature.setFont(fontTemperature);
 		labelTemperature.setForeground(Color.MAGENTA.darker().darker());
 		labelTemperature.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTemperature);
 		
-		labelTemperatureMin.setFont(fontBig);
+		labelTemperatureMin.setFont(fontTemperature);
 		labelTemperatureMin.setForeground(Color.MAGENTA.darker().darker());
 		labelTemperatureMin.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTemperatureMin);
 		
 		add(Box.createVerticalGlue());
 		
-		labelForecastDate.setFont(fontSmall);
+		labelForecastDate.setFont(fontText);
 		labelForecastDate.setForeground(Color.MAGENTA.darker().darker());
 		labelForecastDate.setAlignmentX(CENTER_ALIGNMENT);
 		//add(labelForecastDate);
 		
-		labelForecastSummary.setFont(fontSmall);
+		labelForecastSummary.setFont(fontText);
 		labelForecastSummary.setForeground(Color.CYAN.darker().darker());
 		labelForecastSummary.setAlignmentX(CENTER_ALIGNMENT);
 		//add(labelForecastSummary);
@@ -67,7 +70,7 @@ class WeatherPanel extends Panel {
 		
 		add(Box.createVerticalGlue());
 		
-		labelForecastHighTemperature.setFont(fontBig);
+		labelForecastHighTemperature.setFont(fontTemperature);
 		labelForecastHighTemperature.setForeground(Color.CYAN.darker().darker());
 		labelForecastHighTemperature.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelForecastHighTemperature);

@@ -25,6 +25,14 @@ public abstract class Provider implements Runnable {
 	}
 	
 	/**
+	 * sets the Thread object that is running the scheduler
+	 * @param thread thread object running the scheduler
+	 */
+	void setSchedulerThread(Thread thread) {
+		schedulerThread = thread;
+	}
+	
+	/**
 	 * starts the provider thread
 	 */
 	void start() {
@@ -35,12 +43,12 @@ public abstract class Provider implements Runnable {
 		}
 		else {
 			if(thread==null) {
-				log.fine("starting provider thread");
+				log.fine("starting provider thread "+getClass().getSimpleName());
 				thread = new Thread(this);
 				thread.start();
 			}
 			else {
-				log.fine("start called but thread object is not null. Doing nothing");
+				log.finest("start called but thread object is not null. Doing nothing");
 			}
 		}
 	}
@@ -97,4 +105,6 @@ public abstract class Provider implements Runnable {
 	private int     sleepTimeSeconds;           // sleep time between refreshing data
 	private Thread  thread           = null;    // thread object
 	protected Panel panel            = null;    // panel object belonging to this provider
+	
+	private Thread  schedulerThread  = null;    // Thread object running the scheduler
 }
