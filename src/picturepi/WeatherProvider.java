@@ -18,6 +18,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import tk.plogitech.darksky.forecast.APIKey;
 import tk.plogitech.darksky.forecast.DarkSkyClient;
 import tk.plogitech.darksky.forecast.ForecastException;
+//import tk.plogitech.darksky.forecast.ForecastException;
 import tk.plogitech.darksky.forecast.ForecastRequest;
 import tk.plogitech.darksky.forecast.ForecastRequestBuilder;
 import tk.plogitech.darksky.forecast.ForecastRequestBuilder.Block;

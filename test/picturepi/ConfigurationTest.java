@@ -1,18 +1,14 @@
 package picturepi;
 
-import static org.junit.Assert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.hamcrest.core.IsNull;
-
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.collection.IsCollectionWithSize.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.hasItems;
 
-import picturepi.Configuration.ButtonClickViewData;
 
 class ConfigurationTest {
 	
@@ -76,20 +72,20 @@ class ConfigurationTest {
 		assertThat(Configuration.getConfiguration().getValue("unittest", "stringTestXX", "x"), is("x"));
 	}
 	
-	@Test
-	void testParsingViewDataOneSlot() {
-		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-21:40"), hasSize(1));
-	}
-	
-	@Test
-	void testParsingViewDataTwoSlots() {
-		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40"), hasSize(2));
-	}
-	
-	@Test
-	void testParsingViewDataErrorNoDuration() {
-		assertThat(Configuration.getConfiguration().parseViewData("06:00-09:00,20:00-21:40"), hasSize(0));
-	}
+//	@Test
+//	void testParsingViewDataOneSlot() {
+//		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-21:40"), hasItems(1));
+//	}
+//	
+//	@Test
+//	void testParsingViewDataTwoSlots() {
+//		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40"), hasSize(2));
+//	}
+//	
+//	@Test
+//	void testParsingViewDataErrorNoDuration() {
+//		assertThat(Configuration.getConfiguration().parseViewData("06:00-09:00,20:00-21:40"), hasSize(0));
+//	}
 
 	@Test
 	void testParsingButtonClickViewDataErrorNoClicks() {

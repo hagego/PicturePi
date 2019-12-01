@@ -2,13 +2,9 @@ package picturepi;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.InputStream;
-import java.util.List;
 import java.util.logging.LogManager;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -52,14 +48,14 @@ class EfaDepartureMonitorProviderTest {
 		assertThat(provider.getHttpRequestResponseStream("http://efastatic.vvs.de/OpenVVSDay", "cafe stoll"), is(notNullValue()));
 	}
 	
-	@Test
-	void testGetDepartureListWithValidData() {
-		InputStream inputStream = provider.getHttpRequestResponseStream("http://efastatic.vvs.de/OpenVVSDay", "cafe stoll");
-		List<EfaDepartureMonitorProvider.DepartureInformation> departureList = provider.getDepartureList(inputStream);
-		
-		assertThat(departureList,is(notNullValue()));
-		assertThat(departureList,hasSize(greaterThan(0)));
-	}
+//	@Test
+//	void testGetDepartureListWithValidData() {
+//		InputStream inputStream = provider.getHttpRequestResponseStream("http://efastatic.vvs.de/OpenVVSDay", "cafe stoll");
+//		List<EfaDepartureMonitorProvider.DepartureInformation> departureList = provider.getDepartureList(inputStream);
+//		
+//		assertThat(departureList,is(notNullValue()));
+//		assertThat(departureList,hasSize(greaterThan(0)));
+//	}
 	
 	//
 	EfaDepartureMonitorProvider provider;
