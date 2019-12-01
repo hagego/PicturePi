@@ -3,6 +3,10 @@
   <groupId>picturepi</groupId>
   <artifactId>PicturePi</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <properties>
+    <project.build.sourceEncoding>Cp1252</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>Cp1252</project.reporting.outputEncoding>
+</properties>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
