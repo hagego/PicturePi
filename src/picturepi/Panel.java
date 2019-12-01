@@ -19,7 +19,7 @@ public abstract class Panel extends JPanel {
 	
 	/**
 	 * sets the panel as active or inactive
-	 * active means the panel can be displayed now, but not necessarily that it
+	 * active means the panel can be displayed now and the data provider is started, but not necessarily that it
 	 * is currently being displayed
 	 * @param isActive
 	 */
@@ -36,13 +36,6 @@ public abstract class Panel extends JPanel {
 		}
 	}
 	
-	/**
-	 * sets the Thread object that is running the scheduler
-	 * @param thread thread object running the scheduler
-	 */
-	void setSchedulerThread(Thread thread) {
-		provider.setSchedulerThread(thread);
-	}
 	
 	/**
 	 * returns if this panel is currently active or not
@@ -52,6 +45,19 @@ public abstract class Panel extends JPanel {
 	 */
 	boolean isActive() {
 		return isActive;
+	}
+	
+	/**
+	 * forces the provider to do a data update immediately (in the background)
+	 */
+	void forceUpdate() {
+		Thread t = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				provider.fetchData();
+			}});
+		t.start();
 	}
 	
 	/**

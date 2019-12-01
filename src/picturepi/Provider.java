@@ -24,13 +24,6 @@ public abstract class Provider implements Runnable {
 		this.panel = panel;
 	}
 	
-	/**
-	 * sets the Thread object that is running the scheduler
-	 * @param thread thread object running the scheduler
-	 */
-	void setSchedulerThread(Thread thread) {
-		schedulerThread = thread;
-	}
 	
 	/**
 	 * starts the provider thread
@@ -97,7 +90,7 @@ public abstract class Provider implements Runnable {
 	/*
 	 * gets called periodically to update the data
 	 */
-	protected abstract void fetchData();
+	abstract void fetchData();
 	
 	// private members
 	private static final Logger log = Logger.getLogger( Provider.class.getName() );
@@ -105,6 +98,4 @@ public abstract class Provider implements Runnable {
 	private int     sleepTimeSeconds;           // sleep time between refreshing data
 	private Thread  thread           = null;    // thread object
 	protected Panel panel            = null;    // panel object belonging to this provider
-	
-	private Thread  schedulerThread  = null;    // Thread object running the scheduler
 }

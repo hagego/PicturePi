@@ -4,9 +4,13 @@ import java.awt.EventQueue;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -27,13 +31,21 @@ import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
+import io.flic.fliclib.javaclient.Bdaddr;
+import io.flic.fliclib.javaclient.ButtonConnectionChannel;
+import io.flic.fliclib.javaclient.FlicClient;
+import io.flic.fliclib.javaclient.enums.ClickType;
+import io.flic.fliclib.javaclient.enums.ConnectionStatus;
+import io.flic.fliclib.javaclient.enums.DisconnectReason;
+import io.flic.fliclib.javaclient.enums.LatencyMode;
+import io.flic.fliclib.javaclient.enums.RemovedReason;
 import picturepi.Configuration.ViewData;
 
 
 /**
  * Main application class for PicturePi
  */
-public class PicturePi implements IMqttMessageListener,Runnable {
+public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqttMessageListener,Runnable {
 	
 	public static void main(String[] args) {
 		
@@ -101,7 +113,6 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 		picturePi.setSchedulerThread(t);
 		t.start();
 		
-		log.config("main thread end");
 	}
 
 	/**
@@ -203,8 +214,11 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 		else {
 			gpioInPIRSensor = null;
 		}
+		
+		createViewName2PanelMap();
+		initializeFlicBluetoothButtons();
 	}
-	
+		
 	/**
 	 * sets the thread object that is running the scheduler
 	 * @param thread thread object running the scheduler
@@ -213,15 +227,16 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 		schedulerThread = thread;
 	}
 	
-	
-	@Override
-	public void run() {
-		log.config("scheduler started");
+	/**
+	 * creates the viewName2panelMap from the configuration file
+	 */
+	private void createViewName2PanelMap() {
+		log.config("Creating view name 2 panel map from config file");
 		
-		// read view data from config file and create panels
-		Map<String,Panel> panelMap = new HashMap<String,Panel>();
+		// read view data from configuration file and create panels
+		viewName2panelMap = new HashMap<String,Panel>();
 		for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
-			if(panelMap.get(viewData.name) == null) {
+			if(viewName2panelMap.get(viewData.name) == null) {
 				// new panel
 				log.fine("No panel created yet for "+viewData.name);
 				Panel panel = null;
@@ -239,13 +254,85 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 				
 				log.fine("successfully created panel "+viewData.name);
 				viewData.panel = panel;
-				panelMap.put(viewData.name, panel);
+				viewName2panelMap.put(viewData.name, panel);
 			}
 			else {
 				log.fine("re-using panel object for "+viewData.name);
-				viewData.panel = panelMap.get(viewData.name);
+				viewData.panel = viewName2panelMap.get(viewData.name);
 			}
 		}
+	}
+	
+	/**
+	 * creates the button2Panel map from the configuration file
+	 */
+	private void initializeFlicBluetoothButtons() {
+		log.config("Creating bluetooth button 2 panel map from config file");
+		
+		// read flicd bluetooth button 2 panel mapping and create panel objects
+		log.config("creating panel objects for flicd buttons");
+		buttonPanelList = Configuration.getConfiguration().getButtonViewList();
+		
+		for(Configuration.ButtonClickViewData buttonViewData : buttonPanelList) {
+			buttonViewData.panel = null;
+			
+			try {
+				Class<?> panelClass = Class.forName("picturepi."+buttonViewData.viewName);
+				buttonViewData.panel = (Panel) panelClass.newInstance();
+				buttonViewData.panel.setActive(false);
+				
+				log.info("Panel created for "+buttonViewData.viewName+", maps to button "+buttonViewData.buttonAddress);
+			} catch (ClassNotFoundException e) {
+				log.severe("view panel class not found: "+buttonViewData.viewName);
+				log.severe(e.getMessage());
+			} catch (IllegalAccessException | InstantiationException e) {
+				log.severe("unable to instantiate view panel class : "+buttonViewData.viewName);
+				log.severe(e.getMessage());
+			}
+		}
+		
+		// start connection to flicd
+	    try {
+	    	log.info("creating connection to flicd");
+			FlicClient flicCLient = new FlicClient("127.0.0.1");
+			
+			// register all buttons found in configuration file
+			// buttons might exist multiple times in the list, register each only one
+			Set<String> baddrStringSet = new HashSet<String>();
+			for(Configuration.ButtonClickViewData buttonViewData:buttonPanelList) {
+				if(!baddrStringSet.contains(buttonViewData.buttonAddress)) {
+					baddrStringSet.add(buttonViewData.buttonAddress);
+					
+					log.fine("registering bluetooth button "+buttonViewData.buttonAddress);
+					ButtonConnectionChannel button = new ButtonConnectionChannel(new Bdaddr(buttonViewData.buttonAddress), LatencyMode.NormalLatency, (short)5, this);
+					flicCLient.addConnectionChannel(button);
+				}
+			}
+			
+			log.info("entering flic event loop");
+			
+			Thread t = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						flicCLient.handleEvents();
+					} catch (IOException e) {
+						log.severe("Exception during flic event loop");
+						log.severe(e.getMessage());
+					}
+				};
+			});
+			t.start();
+		} catch (IOException e) {
+			log.severe("Unable to connect to flicd");
+			log.severe(e.getMessage());
+		}
+	}
+	
+	
+	@Override
+	public void run() {
+		log.config("scheduler started");
 		
 		// start motion detected panel
 		String motionDetectedPanelName = Configuration.getConfiguration().getValue("screen", "motionDetectedPanel", null);
@@ -287,7 +374,6 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 		// set panels active to start provider threads
 		log.config("starting provider threads on active views");
 		for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
-			viewData.panel.setSchedulerThread(schedulerThread);
 			if(viewData.isActive()) {
 				viewData.panel.setActive(true);
 			}
@@ -302,63 +388,76 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 		scheduledViewActive = false;
 		do {
 			try {
-				// find the next view to display. Loop until either an active view was found
-				// or we end up at the same view again (so no active view exists currently)
-				do {
-					if(!viewIterator.hasNext()) {
-						// start at beginning again
-						viewIterator = viewDataList.iterator();
-					}
-					nextView = viewIterator.next();
-					
-					// ensure that providers of inactive views are stopped
-					if(!nextView.isActive() && nextView.panel.isActive()) {
-						log.fine("de-activating view "+nextView.name);
-						nextView.panel.setActive(false);
-					}
-					
-					// ensure that providers get started if view just gets active again
-					if(nextView.isActive() && !nextView.panel.isActive()) {
-						// panel just got activated again. re-start provider.
-						log.fine("re-activating view "+nextView.name);
-						nextView.panel.setActive(true);
-					}
-				}
-				while ((!nextView.isActive() || !nextView.panel.hasData()) && nextView != lastView);
+				long sleepTime = SLEEP_TIME;
 				
-				long sleepTime = SLEEP_TIME; 
-				if(nextView.isActive() && nextView.panel.hasData()) {
-					// active view found that has data to display or is not active yet
-					// (if panel is not active, provider is not started so it cannot have data)
+				if(buttonClicked.get()) {
+					enableDisplay(true);
+					log.fine("activating panel "+buttonClickedPanel.getClass().toString());
+					buttonClickedPanel.forceUpdate();
+					mainWindow.setPanel(buttonClickedPanel);
 					
-					
-					if(!scheduledViewActive) {
-						// scheduled views become active again (they were inactive before)
-						log.info("scheduled view period started");
-						scheduledViewActive = true;
-						
-						if(screenType==ScreenType.PROJECTOR) {
-							// in case of projector, enable again (regardless of motion detection)
-							enableDisplay(true);
-						}
-						if(screenType==ScreenType.DISPLAY ) {
-							// in case of HDMI, only enable if motion is detected
-							enableDisplay(motionDetectedPeriod);
-						}
-					}
-					log.fine("activating view "+nextView.name);
-					
-					mainWindow.setPanel(nextView.panel);
-					
-					sleepTime = nextView.duration*1000;
+					sleepTime = BUTTON_CLICKED_SLEEP_TIME;
+					buttonClicked.set(false);
 				}
 				else {
-					// no active view found. Sleep a minute and try again
-					log.fine("no active view found");
-					if(scheduledViewActive) {
-						enableDisplay(false);
-						scheduledViewActive = false;
+					// find the next view to display. Loop until either an active view was found
+					// or we end up at the same view again (so no active view exists currently)
+					do {
+						if(!viewIterator.hasNext()) {
+							// start at beginning again
+							viewIterator = viewDataList.iterator();
+						}
+						nextView = viewIterator.next();
+						
+						// ensure that providers of inactive views are stopped
+						if(!nextView.isActive() && nextView.panel.isActive()) {
+							log.fine("de-activating view "+nextView.name);
+							nextView.panel.setActive(false);
+						}
+						
+						// ensure that providers get started if view just gets active again
+						if(nextView.isActive() && !nextView.panel.isActive()) {
+							// panel just got activated again. re-start provider.
+							log.fine("re-activating view "+nextView.name);
+							nextView.panel.setActive(true);
+						}
 					}
+					while ((!nextView.isActive() || !nextView.panel.hasData()) && nextView != lastView);
+					
+					if(nextView.isActive() && nextView.panel.hasData()) {
+						// active view found that has data to display or is not active yet
+						// (if panel is not active, provider is not started so it cannot have data)
+						
+						
+						if(!scheduledViewActive) {
+							// scheduled views become active again (they were inactive before)
+							log.info("scheduled view period started");
+							scheduledViewActive = true;
+							
+							if(screenType==ScreenType.PROJECTOR) {
+								// in case of projector, enable again (regardless of motion detection)
+								enableDisplay(true);
+							}
+							if(screenType==ScreenType.DISPLAY ) {
+								// in case of HDMI, only enable if motion is detected
+								enableDisplay(motionDetectedPeriod);
+							}
+						}
+						
+						log.fine("activating view "+nextView.name);
+						mainWindow.setPanel(nextView.panel);
+						
+						sleepTime = nextView.duration*1000;
+					}
+					else {
+						// no active view found. Sleep a minute and try again
+						log.fine("no active view found");
+						if(scheduledViewActive) {
+							enableDisplay(false);
+							scheduledViewActive = false;
+						}
+					}
+					lastView = nextView;
 				}
 				
 				if(scheduledViewActive || motionDetectedPeriod) {
@@ -390,11 +489,14 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 						}
 					}
 				}
-				
-				lastView = nextView;
 			} catch (InterruptedException e) {
-				log.severe("thread sleep interrupted");
-				log.severe(e.getMessage());
+				if(buttonClicked.get()) {
+					log.fine("thread sleep interrupted due to bluetooth button click");
+				}
+				else {
+					log.severe("thread sleep interrupted");
+					log.severe(e.getMessage());
+				}
 			}
 		}
 		while(true);
@@ -543,6 +645,54 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 		displayEnabled = enable;
 	}
 	
+	//
+	// flicd ButtonConnectionChannel.Callbacks methods
+	//
+	@Override
+	public void onButtonSingleOrDoubleClickOrHold(ButtonConnectionChannel channel, ClickType clickType, boolean wasQueued, int timeDiff) {
+		log.fine("Button callback received: clicked="+clickType.toString()+ " wasQueued="+wasQueued);
+		
+		if(wasQueued==false && clickType==ClickType.ButtonSingleClick) {
+			log.fine("button single click received, button="+channel.getBdaddr());
+			
+			for(Configuration.ButtonClickViewData buttonViewData:buttonPanelList) {
+				if(buttonViewData.buttonAddress.equals(channel.getBdaddr().toString()) && buttonViewData.clicks==1 && buttonViewData.panel!=null) {
+					buttonClickedPanel = buttonViewData.panel;
+					buttonClicked.set(true);
+					log.fine("activating view "+buttonClickedPanel.getClass().toString()+" for bluetooth button "+channel.getBdaddr().toString());
+					
+					// stopping regular scheduling
+					schedulerThread.interrupt();
+				}
+			}
+		}
+		
+		if(wasQueued==false && clickType==ClickType.ButtonDoubleClick) {
+			log.fine("button double click received, button="+channel.getBdaddr());
+			
+			for(Configuration.ButtonClickViewData buttonViewData:buttonPanelList) {
+				if(buttonViewData.buttonAddress.equals(channel.getBdaddr().toString()) && buttonViewData.clicks==2 && buttonViewData.panel!=null) {
+					buttonClickedPanel = buttonViewData.panel;
+					buttonClicked.set(true);
+					log.fine("activating view "+buttonClickedPanel.getClass().toString()+" for bluetooth button "+channel.getBdaddr().toString());
+					
+					// stopping regular scheduling
+					schedulerThread.interrupt();
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void onConnectionStatusChanged(ButtonConnectionChannel channel,ConnectionStatus connectionStatus,DisconnectReason disconnectReason) {
+		log.finest("onStatusChanged received: connectionStatus="+connectionStatus+" diconnectReason="+disconnectReason);
+	}
+	
+	@Override
+	public void onRemoved(ButtonConnectionChannel channel,RemovedReason removedReason) {
+		log.finest("onRemoved callback received. removedReason="+removedReason);
+	}
+	
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		log.fine("MQTT message arrived: topic="+topic+" content="+message);
@@ -563,8 +713,10 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 			}
 		}
 	}
-	
+
+	//
 	// private members
+	//
 	private static final Logger log = Logger.getLogger( PicturePi.class.getName() );
 	
 	private MainWindow mainWindow;
@@ -580,6 +732,13 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 	private boolean              motionDetectedPeriod  = false;  // reflects if we are in a motion detected period or not
 	private int                  displayOnCounter      = 0;      // ms counter to disable projector again after motion detection
 	private Panel                motionDetectedPanel   = null;   // Panel to display in case of motion detection
+	
+	private Map<String,Panel>    viewName2panelMap     = null;   // maps view names to panel objects
+	
+	private List<Configuration.ButtonClickViewData>   buttonPanelList  = null;   // maps bluetooth buttons to panels to be displayed
+	AtomicBoolean                buttonClicked         = new AtomicBoolean(false);  // flag to indicate if a bluetooth button was clicked
+	Panel                        buttonClickedPanel    = null;   // panel to display after most recent bluetooth button click
+	static final int             BUTTON_CLICKED_SLEEP_TIME = 15000;  // sleep time after bluetooth button was clicked                    
 	
 	private Thread               schedulerThread       = null;   // thread object that is running the scheduler
 	
@@ -600,7 +759,7 @@ public class PicturePi implements IMqttMessageListener,Runnable {
 	static final byte I2C_BRIGHTNESS_SET2[]  = {0x38, 0x00, 0x00, 0x00, (byte)0xd3};
 	
 	private byte  projectorBrightnessSetting = 1;  // current value for the brightness setting of the projector
-
+	
 	static final int SLEEP_TIME          = 60000;   // sleep time for view scheduler in ms
 	static final int PROJECTOR_BOOT_TIME = 800;     // projector on time after motion detection in ms
 }

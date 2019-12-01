@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -196,6 +197,48 @@ class Configuration {
 		
 		return viewList;
 	}
+	
+	/**
+	 * parses data for views activated on bluetooth button click
+	 * @param data  View data in the form <bluetooth button address>,<clicks>,<display duration in s>
+	 * @return ButtonClickViewData object with the parsed data or null in case of error
+	 */
+	ButtonClickViewData parseButtonClickViewData(final String data) {
+		ButtonClickViewData buttonClickViewData = null;
+		String              address;
+		int                 clicks;
+		int                 duration;
+		int                 pos = data.indexOf(',');
+		
+		try {
+			if(pos!=-1) {
+				address = data.substring(0, pos);
+				if(pos+1<data.length()) {
+					int pos2 = data.indexOf(',',pos+1);
+					if(pos2!=-1) {
+						clicks = Integer.parseInt(data.substring(pos+1,pos2));
+						if(clicks>0 && clicks<3 && pos2+1<data.length()) {
+							duration = Integer.parseInt(data.substring(pos2+1));
+							
+							buttonClickViewData = new ButtonClickViewData();
+							buttonClickViewData.buttonAddress = address;
+							buttonClickViewData.clicks        = clicks;
+							buttonClickViewData.duration      = duration;
+							
+							return buttonClickViewData;
+						}
+					}
+				}
+			}
+		}
+		catch(NumberFormatException e) {
+			// nothing to do
+		}
+		
+		log.severe("Unable to parse button click view data from "+data);
+		
+		return null;
+	}
 
 	/**
 	 * reads view data and creates them
@@ -203,6 +246,8 @@ class Configuration {
 	private void readViewData() {
 		// read view data
 		log.config("reading view data");
+		
+		viewDataList = new LinkedList<ViewData>();
 		
 		// syntax: <Viewname> = <display duration [s]>,<display start in hh:mm>-<display end in hh:mm>
 		Ini.Section views= iniFile.get("views");
@@ -220,17 +265,42 @@ class Configuration {
 		}
 	}
 	
+	/**
+	 * reads the mapping of flicd bluetooth buttons to panels
+	 */
+	private void readButtonViewData() {
+		log.config("reading flicd bluetooth button2view mapping");
+		
+		buttonViewList = new LinkedList<ButtonClickViewData>();
+		
+		Ini.Section buttons= iniFile.get("buttons");
+		for(Map.Entry<String,String> entry: buttons.entrySet() ) {
+			log.config("found view: "+entry.getKey()+" maps to button "+entry.getValue());
+			ButtonClickViewData buttonClickViewData = Configuration.getConfiguration().parseButtonClickViewData(entry.getValue());
+			if(buttonClickViewData!=null) {
+				buttonClickViewData.viewName = entry.getKey();
+				buttonViewList.add(buttonClickViewData);
+			}
+		}
+	}
+	
 	//
 	// getters/setters
 	//
 	final List<ViewData> getViewDataList() {
 		if(viewDataList==null) {
 			// first time this method is called. Parse data from file
-			viewDataList = new LinkedList<ViewData>();
-			
 			readViewData();
 		}
 		return viewDataList;
+	}
+	
+	final List<ButtonClickViewData> getButtonViewList() {
+		if(buttonViewList==null) {
+			// first time this method is called. Parse data from config file
+			readButtonViewData();
+		}
+		return buttonViewList;
 	}
 
 	//
@@ -246,14 +316,26 @@ class Configuration {
 		public boolean isActive() {
 			return LocalTime.now().isAfter(displayStart) && LocalTime.now().isBefore(displayEnd);
 		}
-		
 	}
+	
+	//
+	// nested class for views activated thru button clicks
+	//
+	class ButtonClickViewData {
+		public String   viewName;       // view name
+		public String   buttonAddress;  // bluetooth address
+		public int      duration;       // display duration in seconds after button click
+		public int      clicks;         // click count: 1=single click, 2=double click
+		public Panel    panel;          // Panel object
+	}
+	
 	//
 	// member variables
 	//
 	static               Configuration configuration = null;                 //singleton object
 	private static final Logger        log           = Logger.getLogger( Configuration.class.getName() );
 
-	private final    Ini            iniFile      = new Ini();                  // ini4j object
-	private          List<ViewData> viewDataList = null;
+	private final    Ini            iniFile            = new Ini();               // ini4j object
+	private          List<ViewData> viewDataList       = null;                    // stores view scheduling data
+	private          List<ButtonClickViewData> buttonViewList = null;             // stores data to map button clicks to views
 }

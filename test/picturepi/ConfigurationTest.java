@@ -2,10 +2,17 @@ package picturepi;
 
 import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.hamcrest.core.IsNull;
+
 import static org.hamcrest.core.Is.*;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import picturepi.Configuration.ButtonClickViewData;
 
 class ConfigurationTest {
 	
@@ -84,4 +91,28 @@ class ConfigurationTest {
 		assertThat(Configuration.getConfiguration().parseViewData("06:00-09:00,20:00-21:40"), hasSize(0));
 	}
 
+	@Test
+	void testParsingButtonClickViewDataErrorNoClicks() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9"), is(nullValue()));
+	}
+	
+	@Test
+	void testParsingButtonClickViewDataErrorWrongClickCount() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,3,10"), is(nullValue()));
+	}
+	
+	@Test
+	void testParsingButtonClickViewDataErrorNoDuration() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1"), is(nullValue()));
+	}
+	
+	@Test
+	void testParsingButtonClickViewDataErrorTooMuchData() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1,10,"), is(nullValue()));
+	}
+	
+	@Test
+	void testParsingButtonClickViewDataCorrectData() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1,10"), is(notNullValue()));
+	}
 }
