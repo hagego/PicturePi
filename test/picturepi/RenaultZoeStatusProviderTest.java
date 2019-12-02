@@ -35,13 +35,13 @@ class RenaultZoeStatusProviderTest {
 		assertNull(provider.login("dummy", "user")); 
 	}
 	
-	@Test
-	void testLoginWithValidUser() {
-		String user     = Configuration.getConfiguration().getValue("RenaultZoeStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("RenaultZoeStatusPanel", "password", "");
-		
-		assertNotNull(provider.login(user, password)); 
-	}
+//	@Test
+//	void testLoginWithValidUser() {
+//		String user     = Configuration.getConfiguration().getValue("RenaultZoeStatusPanel", "user", "");
+//		String password = Configuration.getConfiguration().getValue("RenaultZoeStatusPanel", "password", "");
+//		
+//		assertNotNull(provider.login(user, password)); 
+//	}
 	
 	@Test
 	void testParseLoginResponseWithValidData() {

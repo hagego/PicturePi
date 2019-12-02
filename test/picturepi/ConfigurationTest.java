@@ -1,11 +1,12 @@
 package picturepi;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-//import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 class ConfigurationTest {
 	
@@ -15,8 +16,15 @@ class ConfigurationTest {
 	}
 
 	@Test
-	void testIsRunningOnRaspberry() {
+	@EnabledOnOs({OS.WINDOWS})
+	void testOnWindowsIsRunningOnRaspberry() {
 		assertThat(Configuration.getConfiguration().isRunningOnRaspberry(),is(false));
+	}
+	
+	@Test
+	@EnabledOnOs({OS.LINUX})
+	void testOnLinuxIsRunningOnRaspberry() {
+		assertThat(Configuration.getConfiguration().isRunningOnRaspberry(),is(true));
 	}
 	
 	@Test
@@ -69,44 +77,44 @@ class ConfigurationTest {
 	void testGetStringValueThatDoesNotExist() {
 		assertThat(Configuration.getConfiguration().getValue("unittest", "stringTestXX", "x"), is("x"));
 	}
-//	
-//	@Test
-//	void testParsingViewDataOneSlot() {
-//		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-21:40"), hasSize(1));
-//	}
-//	
-//	@Test
-//	void testParsingViewDataTwoSlots() {
-//		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40"), hasSize(2));
-//	}
-//	
-//	@Test
-//	void testParsingViewDataErrorNoDuration() {
-//		assertThat(Configuration.getConfiguration().parseViewData("06:00-09:00,20:00-21:40"), hasSize(0));
-//	}
-//
-//	@Test
-//	void testParsingButtonClickViewDataErrorNoClicks() {
-//		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9"), is(nullValue()));
-//	}
-//	
-//	@Test
-//	void testParsingButtonClickViewDataErrorWrongClickCount() {
-//		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,3,10"), is(nullValue()));
-//	}
-//	
-//	@Test
-//	void testParsingButtonClickViewDataErrorNoDuration() {
-//		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1"), is(nullValue()));
-//	}
-//	
-//	@Test
-//	void testParsingButtonClickViewDataErrorTooMuchData() {
-//		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1,10,"), is(nullValue()));
-//	}
-//	
-//	@Test
-//	void testParsingButtonClickViewDataCorrectData() {
-//		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1,10"), is(notNullValue()));
-//	}
+	
+	@Test
+	void testParsingViewDataOneSlot() {
+		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-21:40"), hasSize(1));
+	}
+	
+	@Test
+	void testParsingViewDataTwoSlots() {
+		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40"), hasSize(2));
+	}
+	
+	@Test
+	void testParsingViewDataErrorNoDuration() {
+		assertThat(Configuration.getConfiguration().parseViewData("06:00-09:00,20:00-21:40"), hasSize(0));
+	}
+
+	@Test
+	void testParsingButtonClickViewDataErrorNoClicks() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9"), is(nullValue()));
+	}
+	
+	@Test
+	void testParsingButtonClickViewDataErrorWrongClickCount() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,3,10"), is(nullValue()));
+	}
+	
+	@Test
+	void testParsingButtonClickViewDataErrorNoDuration() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1"), is(nullValue()));
+	}
+	
+	@Test
+	void testParsingButtonClickViewDataErrorTooMuchData() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1,10,"), is(nullValue()));
+	}
+	
+	@Test
+	void testParsingButtonClickViewDataCorrectData() {
+		assertThat(Configuration.getConfiguration().parseButtonClickViewData("80:e4:da:70:24:d9,1,10"), is(notNullValue()));
+	}
 }
