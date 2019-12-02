@@ -1,5 +1,8 @@
 package picturepi;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Logger;
+
 import javax.swing.JPanel;
 
 /**
@@ -15,6 +18,31 @@ public abstract class Panel extends JPanel {
 		
 		this.provider = provider;
 		provider.setPanel(this);
+	}
+	
+	/**
+	 * creates a Panel object from the class name
+	 * @param panelName
+	 * @return
+	 */
+	static Panel createPanelFromName(final String panelName) {
+		Panel panel = null;
+		
+		try {
+			Class<?> panelClass = Class.forName("picturepi."+panelName);
+			panel = (Panel) panelClass.getDeclaredConstructor().newInstance();
+		} catch (ClassNotFoundException e) {
+			log.severe("view panel class not found: "+panelName);
+			log.severe(e.getMessage());
+		} catch (IllegalAccessException | InstantiationException e) {
+			log.severe("unable to instantiate panel class : "+panelName);
+			log.severe(e.getMessage());
+		} catch (IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			log.severe("unable to instantiate panel class : "+panelName);
+			log.severe(e.getMessage());
+		}
+		
+		return panel;
 	}
 	
 	/**
@@ -78,7 +106,8 @@ public abstract class Panel extends JPanel {
 	//
 	// private members
 	//
-	private static final long serialVersionUID = -3111174588868454448L;
+	private static final long    serialVersionUID = -3111174588868454448L;
+	private static final Logger  log = Logger.getLogger( Panel.class.getName() );
 	
 	protected Provider provider = null;         // data provider for this panel
 	protected boolean  isActive = false;        // flags if this panel is currently active or not
