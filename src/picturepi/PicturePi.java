@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -239,22 +238,16 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 			if(viewName2panelMap.get(viewData.name) == null) {
 				// new panel
 				log.fine("No panel created yet for "+viewData.name);
-				Panel panel = null;
-				
-				try {
-					Class<?> panelClass = Class.forName("picturepi."+viewData.name);
-					panel = (Panel) panelClass.newInstance();
-				} catch (ClassNotFoundException e) {
-					log.severe("view panel class not found: "+viewData.name);
-					log.severe(e.getMessage());
-				} catch (IllegalAccessException | InstantiationException e) {
-					log.severe("unable to instantiate view panel class : "+viewData.name);
-					log.severe(e.getMessage());
+				Panel panel = Panel.createPanelFromName(viewData.name);
+								
+				if(panel!=null) {
+					log.fine("successfully created panel "+viewData.name);
+					viewData.panel = panel;
+					viewName2panelMap.put(viewData.name, panel);
 				}
-				
-				log.fine("successfully created panel "+viewData.name);
-				viewData.panel = panel;
-				viewName2panelMap.put(viewData.name, panel);
+				else {
+					log.severe("Unable to create panel "+viewData.panel);
+				}
 			}
 			else {
 				log.fine("re-using panel object for "+viewData.name);
@@ -274,21 +267,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		buttonPanelList = Configuration.getConfiguration().getButtonViewList();
 		
 		for(Configuration.ButtonClickViewData buttonViewData : buttonPanelList) {
-			buttonViewData.panel = null;
-			
-			try {
-				Class<?> panelClass = Class.forName("picturepi."+buttonViewData.viewName);
-				buttonViewData.panel = (Panel) panelClass.newInstance();
-				buttonViewData.panel.setActive(false);
-				
-				log.info("Panel created for "+buttonViewData.viewName+", maps to button "+buttonViewData.buttonAddress);
-			} catch (ClassNotFoundException e) {
-				log.severe("view panel class not found: "+buttonViewData.viewName);
-				log.severe(e.getMessage());
-			} catch (IllegalAccessException | InstantiationException e) {
-				log.severe("unable to instantiate view panel class : "+buttonViewData.viewName);
-				log.severe(e.getMessage());
-			}
+			buttonViewData.panel = Panel.createPanelFromName(buttonViewData.viewName);
 		}
 		
 		// start connection to flicd
@@ -350,17 +329,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 			}
 			
 			if(motionDetectedPanel==null) {
-				// instantiate dedicated panel object
-				try {
-					Class<?> panelClass = Class.forName("picturepi."+motionDetectedPanelName);
-					motionDetectedPanel = (Panel) panelClass.newInstance();
-				} catch (ClassNotFoundException e) {
-					log.severe("motion deteced panel class not found: "+motionDetectedPanelName);
-					log.severe(e.getMessage());
-				} catch (IllegalAccessException | InstantiationException e) {
-					log.severe("unable to instantiate motion deteced panel class : "+motionDetectedPanelName);
-					log.severe(e.getMessage());
-				}
+				motionDetectedPanel = Panel.createPanelFromName(motionDetectedPanelName);
 			}
 
 			if(motionDetectedPanel!=null) {
