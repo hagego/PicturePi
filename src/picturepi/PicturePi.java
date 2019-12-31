@@ -238,7 +238,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 			if(viewName2panelMap.get(viewData.name) == null) {
 				// new panel
 				log.fine("No panel created yet for "+viewData.name);
-				Panel panel = Panel.createPanelFromName(viewData.name);
+				Panel panel = Panel.createPanelFromName(viewData.name,null);
 								
 				if(panel!=null) {
 					log.fine("successfully created panel "+viewData.name);
@@ -267,7 +267,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		buttonPanelList = Configuration.getConfiguration().getButtonViewList();
 		
 		for(Configuration.ButtonClickViewData buttonViewData : buttonPanelList) {
-			buttonViewData.panel = Panel.createPanelFromName(buttonViewData.viewName);
+			buttonViewData.panel = Panel.createPanelFromName(buttonViewData.viewName,buttonViewData.id);
 		}
 		
 		// start connection to flicd
@@ -329,7 +329,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 			}
 			
 			if(motionDetectedPanel==null) {
-				motionDetectedPanel = Panel.createPanelFromName(motionDetectedPanelName);
+				motionDetectedPanel = Panel.createPanelFromName(motionDetectedPanelName,null);
 			}
 
 			if(motionDetectedPanel!=null) {

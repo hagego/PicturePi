@@ -22,23 +22,41 @@ public abstract class Panel extends JPanel {
 	
 	/**
 	 * creates a Panel object from the class name
-	 * @param panelName
-	 * @return
+	 * @param panelName  panel name
+	 * @param id         optional String ID. If specified, panel constructor must have a String parameter
+	 * @return           panel object
 	 */
-	static Panel createPanelFromName(final String panelName) {
+	static Panel createPanelFromName(final String panelName,final String id) {
 		Panel panel = null;
 		
 		try {
 			Class<?> panelClass = Class.forName("picturepi."+panelName);
-			panel = (Panel) panelClass.getDeclaredConstructor().newInstance();
+			if(id!=null) {
+				panel = (Panel) panelClass.getDeclaredConstructor(String.class).newInstance(id);
+			}
+			else {
+				panel = (Panel) panelClass.getDeclaredConstructor().newInstance();
+			}
 		} catch (ClassNotFoundException e) {
 			log.severe("view panel class not found: "+panelName);
 			log.severe(e.getMessage());
-		} catch (IllegalAccessException | InstantiationException e) {
-			log.severe("unable to instantiate panel class : "+panelName);
+		} catch (IllegalAccessException e) {
+			log.severe("IllegalAccessException: Unable to instantiate panel class : "+panelName);
 			log.severe(e.getMessage());
-		} catch (IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			log.severe("unable to instantiate panel class : "+panelName);
+		} catch (InstantiationException e) {
+			log.severe("InstantiationException: Unable to instantiate panel class : "+panelName);
+			log.severe(e.getMessage());
+		} catch (IllegalArgumentException e) {
+			log.severe("IllegalArgumentException: Unable to instantiate panel class : "+panelName);
+			log.severe(e.getMessage());
+		} catch (InvocationTargetException e) {
+			log.severe("InvocationTargetException: Unable to instantiate panel class : "+panelName);
+			log.severe(e.getMessage());
+		} catch (NoSuchMethodException e) {
+			log.severe("NoSuchMethodException: Unable to instantiate panel class : "+panelName);
+			log.severe(e.getMessage());
+		} catch (SecurityException e) {
+			log.severe("SecurityException: Unable to instantiate panel class : "+panelName);
 			log.severe(e.getMessage());
 		}
 		
@@ -111,4 +129,6 @@ public abstract class Panel extends JPanel {
 	
 	protected Provider provider = null;         // data provider for this panel
 	protected boolean  isActive = false;        // flags if this panel is currently active or not
+	
+	protected String   id       = null;         // optional, custom string ID that can be set in config file
 }
