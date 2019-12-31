@@ -621,32 +621,21 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 	public void onButtonSingleOrDoubleClickOrHold(ButtonConnectionChannel channel, ClickType clickType, boolean wasQueued, int timeDiff) {
 		log.fine("Button callback received: clicked="+clickType.toString()+ " wasQueued="+wasQueued);
 		
-		if(wasQueued==false && clickType==ClickType.ButtonSingleClick) {
-			log.fine("button single click received, button="+channel.getBdaddr());
+		if(wasQueued==false) {
+			log.fine("button click received, button="+channel.getBdaddr());
 			
 			for(Configuration.ButtonClickViewData buttonViewData:buttonPanelList) {
-				if(buttonViewData.buttonAddress.equals(channel.getBdaddr().toString()) && buttonViewData.clicks==1 && buttonViewData.panel!=null) {
-					buttonClickedPanel = buttonViewData.panel;
-					buttonClicked.set(true);
-					log.fine("activating view "+buttonClickedPanel.getClass().toString()+" for bluetooth button "+channel.getBdaddr().toString());
-					
-					// stopping regular scheduling
-					schedulerThread.interrupt();
-				}
-			}
-		}
-		
-		if(wasQueued==false && clickType==ClickType.ButtonDoubleClick) {
-			log.fine("button double click received, button="+channel.getBdaddr());
-			
-			for(Configuration.ButtonClickViewData buttonViewData:buttonPanelList) {
-				if(buttonViewData.buttonAddress.equals(channel.getBdaddr().toString()) && buttonViewData.clicks==2 && buttonViewData.panel!=null) {
-					buttonClickedPanel = buttonViewData.panel;
-					buttonClicked.set(true);
-					log.fine("activating view "+buttonClickedPanel.getClass().toString()+" for bluetooth button "+channel.getBdaddr().toString());
-					
-					// stopping regular scheduling
-					schedulerThread.interrupt();
+				if(buttonViewData.buttonAddress.equals(channel.getBdaddr().toString()) && buttonViewData.panel!=null) {
+					if( (clickType==ClickType.ButtonSingleClick && buttonViewData.clicks==1)
+							|| (clickType==ClickType.ButtonDoubleClick && buttonViewData.clicks==2)
+							|| (clickType==ClickType.ButtonHold && buttonViewData.clicks==0) ) {
+						buttonClickedPanel = buttonViewData.panel;
+						buttonClicked.set(true);
+						log.fine("activating view "+buttonClickedPanel.getClass().toString()+" for bluetooth button "+channel.getBdaddr().toString());
+						
+						// stopping regular scheduling
+						schedulerThread.interrupt();
+					}
 				}
 			}
 		}

@@ -216,7 +216,7 @@ class Configuration {
 					int pos2 = data.indexOf(',',pos+1);
 					if(pos2!=-1) {
 						clicks = Integer.parseInt(data.substring(pos+1,pos2));
-						if(clicks>0 && clicks<3 && pos2+1<data.length()) {
+						if(clicks>=0 && clicks<3 && pos2+1<data.length()) {
 							duration = Integer.parseInt(data.substring(pos2+1));
 							
 							buttonClickViewData = new ButtonClickViewData();
