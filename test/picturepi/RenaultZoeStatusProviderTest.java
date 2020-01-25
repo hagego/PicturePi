@@ -27,7 +27,7 @@ class RenaultZoeStatusProviderTest {
 
 	@BeforeEach
 	void setUp() throws Exception {
-		provider = new RenaultZoeStatusProvider();
+		provider = new RenaultZoeStatusProvider("status");
 	}
 
 	@Test
@@ -141,6 +141,29 @@ class RenaultZoeStatusProviderTest {
 		
 		JsonObject jsonResponseObject = Json.createReaderFactory(null).createReader(new StringReader(batteryStatusResponseString)).readObject();
 		assertFalse(provider.parseBatteryStatusResponse(jsonResponseObject));
+	}
+	
+	@Test
+	void testParseAirConditioningStatusWithValidData() {
+		String acStatusResponseString = "{\r\n" + 
+				"	\"date\": 1476538293000,\r\n" + 
+				"	\"type\": \"USER_REQUEST\",\r\n" + 
+				"	\"result\": \"SUCCESS\"\r\n" + 
+				"}";
+		
+		JsonObject jsonResponseObject = Json.createReaderFactory(null).createReader(new StringReader(acStatusResponseString)).readObject();
+		assertTrue(provider.parseAirConditioningStatusResponse(jsonResponseObject));
+	}
+	
+	@Test
+	void testParseAirConditioningStatusWithInvalidData() {
+		String acStatusResponseString = "{\r\n" + 
+				"	\"date\": 1476538293000,\r\n" + 
+				"	\"type\": \"USER_REQUEST\"\r\n" + 
+				"}";
+		
+		JsonObject jsonResponseObject = Json.createReaderFactory(null).createReader(new StringReader(acStatusResponseString)).readObject();
+		assertFalse(provider.parseAirConditioningStatusResponse(jsonResponseObject));
 	}
 	
 	// private members
