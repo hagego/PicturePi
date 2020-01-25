@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.lang.invoke.MethodHandles;
+import java.time.LocalTime;
 import java.util.logging.Logger;
 
 import javax.swing.JLabel;
@@ -16,8 +17,8 @@ import javax.swing.JLabel;
  */
 public class RenaultZoeStatusPanel extends Panel {
 
-	public RenaultZoeStatusPanel() {
-		super(new RenaultZoeStatusProvider());
+	public RenaultZoeStatusPanel(String task) {
+		super(new RenaultZoeStatusProvider(task));
 		
 		setBackground(Color.BLACK);
 		setLayout(new GridBagLayout());
@@ -83,7 +84,7 @@ public class RenaultZoeStatusPanel extends Panel {
 		
 		constraints.gridx = 0;
 		constraints.gridy = 4;
-		JLabel labelAirConditioningHeader = new JLabel("Klimaanlage:");
+		JLabel labelAirConditioningHeader = new JLabel("Klimaanlage An:");
 		labelAirConditioningHeader.setFont(font);
 		labelAirConditioningHeader.setForeground(Color.MAGENTA);
 		add(labelAirConditioningHeader,constraints);
@@ -93,6 +94,19 @@ public class RenaultZoeStatusPanel extends Panel {
 		labelAirConditioning.setFont(font);
 		labelAirConditioning.setForeground(Color.MAGENTA);
 		add(labelAirConditioning,constraints);
+		
+		constraints.gridx = 0;
+		constraints.gridy = 5;
+		JLabel labelAirConditioningTimeHeader = new JLabel("Klimaanlage Zeit:");
+		labelAirConditioningTimeHeader.setFont(font);
+		labelAirConditioningTimeHeader.setForeground(Color.MAGENTA);
+		add(labelAirConditioningTimeHeader,constraints);
+		
+		constraints.gridx = 1;
+		labelAirConditioningTime = new JLabel("--");
+		labelAirConditioningTime.setFont(font);
+		labelAirConditioningTime.setForeground(Color.MAGENTA);
+		add(labelAirConditioningTime,constraints);
 		
 		log.fine("RenaultZoeStatusPanel created");
 	}
@@ -114,13 +128,41 @@ public class RenaultZoeStatusPanel extends Panel {
 	 * @param isCharging
 	 * @param chargeLevel
 	 * @param isPlugged
-	 * @param airConditioningEnabled
+	 * @param acEnabledSuccess
+	 * @param acEnabledTime
 	 */
-	void setStatus(boolean isCharging,int chargeLevel,boolean isPlugged,boolean airConditioningEnabled) {
-		labelCharging.setText(isCharging ? "Ja" : "Nein");
-		labelChargeLevel.setText(Integer.toString(chargeLevel));
-		labelConnected.setText(isPlugged ? "Ja" : "Nein");
-		labelAirConditioning.setText(airConditioningEnabled ? "Ja" : "Nein");
+	void setStatus(Boolean isCharging,Integer chargeLevel,Boolean isPlugged,Boolean acEnabledSuccess,LocalTime acEnabledTime) {
+		if(isCharging!=null) {
+			labelCharging.setText(isCharging ? "Ja" : "Nein");
+		}
+		else {
+			labelCharging.setText("---");
+		}
+		
+		if(chargeLevel!=null) {
+			labelChargeLevel.setText(Integer.toString(chargeLevel));
+		}
+		else {
+			labelChargeLevel.setText("---");
+		}
+		
+		if(isPlugged!=null) {
+			labelConnected.setText(isPlugged ? "Ja" : "Nein");
+		}
+		else {
+			labelConnected.setText("---");
+		}
+		
+		if(acEnabledSuccess!=null) {
+			labelAirConditioning.setText(acEnabledSuccess ? "Ja" : "Nein");
+		}
+		else {
+			labelAirConditioning.setText("---");
+		}
+		
+		if(acEnabledTime!=null) {
+			labelAirConditioningTime.setText(acEnabledTime.toString());
+		}
 	}
 	
 
@@ -131,8 +173,9 @@ public class RenaultZoeStatusPanel extends Panel {
 	private static final Logger   log              = Logger.getLogger( MethodHandles.lookup().lookupClass().getName() );
 	private static final long     serialVersionUID = -2033700528834112613L;
 	
-	private              JLabel labelCharging;         // JLabel objects for charging status
-	private              JLabel labelChargeLevel;      // JLabel objects for charge level
-	private              JLabel labelConnected;        // JLabel objects for connection state
-	private              JLabel labelAirConditioning;  // JLabel objects for air conditioning
+	private              JLabel labelCharging;            // JLabel objects for charging status
+	private              JLabel labelChargeLevel;         // JLabel objects for charge level
+	private              JLabel labelConnected;           // JLabel objects for connection state
+	private              JLabel labelAirConditioning;     // JLabel objects for air conditioning start status
+	private              JLabel labelAirConditioningTime; // JLabel objects for air conditioning start time
 }

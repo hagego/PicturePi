@@ -8,6 +8,9 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.logging.Logger;
 import javax.json.Json;
 import javax.json.JsonNumber;
@@ -15,6 +18,7 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.json.stream.JsonParsingException;
 
 /**
  * Data provider for the status of a Renault Zoe electrical car.
@@ -22,8 +26,10 @@ import javax.json.JsonValue;
  */
 public class RenaultZoeStatusProvider extends Provider {
 
-	RenaultZoeStatusProvider() {
+	RenaultZoeStatusProvider(String task) {
 		super(3600);
+		
+		this.task = task;
 	}
 	
 	@Override
@@ -126,7 +132,7 @@ public class RenaultZoeStatusProvider extends Provider {
 	 * retrieves the battery status
 	 * @param  token
 	 * @param  vin
-	 * @return response as JSON object of null in case of error
+	 * @return response as JSON object or null in case of error
 	 */
 	JsonObject getBatteryStatus(String token, String vin) {
 		log.fine("getting battery status");
@@ -134,7 +140,6 @@ public class RenaultZoeStatusProvider extends Provider {
 		try {
 			URL url = new URL ("https://www.services.renault-ze.com/api/vehicle/"+vin+"/battery");
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
-			//con.setRequestMethod("POST");
 			con.setRequestProperty("Authorization", "Bearer "+token);
 			con.setRequestProperty("Accept", "application/json");
 			con.setDoOutput(true);
@@ -179,7 +184,7 @@ public class RenaultZoeStatusProvider extends Provider {
 			JsonValue jsonValuePlugged = batteryStatusResponse.get("plugged");
 			if(jsonValuePlugged!=null) {
 				isPlugged = jsonValuePlugged==JsonValue.TRUE ? true : false;
-				log.fine("plugger="+isPlugged);
+				log.fine("plugged="+isPlugged);
 			}
 			
 			JsonValue jsonValueCharging = batteryStatusResponse.get("charging");
@@ -219,10 +224,10 @@ public class RenaultZoeStatusProvider extends Provider {
 			URL url = new URL ("https://www.services.renault-ze.com/api/vehicle/"+vin+"/air-conditioning");
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 			con.setRequestMethod("POST");
-			con.setRequestProperty("Content-Type", "application/json; utf-8");
 			con.setRequestProperty("Authorization", "Bearer "+token);
-			//con.setRequestProperty("Accept", "application/json");
-			//con.setDoOutput(true);
+			con.setDoOutput(false);
+			con.connect();
+			log.fine("HTTP response: "+con.getResponseMessage());
 			
 			return true;
 		}
@@ -232,9 +237,89 @@ public class RenaultZoeStatusProvider extends Provider {
 			return false;
 		} catch (IOException e) {
 			log.severe("IOException: "+e.getMessage());
+			
 		
 			return false;
 		}
+	}
+	
+	/**
+	 * retrieves the AC status
+	 * @param  token
+	 * @param  vin
+	 * @return response as JSON object or null in case of error
+	 */
+	JsonObject getAirConditioningStatus(String token, String vin) {
+		log.fine("getting AC status");
+		
+		try {
+			URL url = new URL ("https://www.services.renault-ze.com/api/vehicle/"+vin+"/air-conditioning/last");
+			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			con.setRequestProperty("Authorization", "Bearer "+token);
+			con.setRequestProperty("Accept", "application/json");
+			con.setDoOutput(true);
+			
+			log.fine("opening URL: "+url);
+			BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"));
+		    StringBuilder response = new StringBuilder();
+		    String responseLine = null;
+		    while ((responseLine = br.readLine()) != null) {
+		        response.append(responseLine.trim());
+		    }
+			log.fine("HTTP response: "+con.getResponseMessage());
+			
+			JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(response.toString()));
+			JsonObject jsonObject  = reader.readObject();
+			
+			log.fine("Json response: "+jsonObject);
+			
+			return jsonObject;
+		} catch (MalformedURLException e) {
+			log.severe("malformed URL Exception");
+			
+			return null;
+		} catch (IOException e) {
+			log.severe("IOException: "+e.getMessage());
+			
+			return null;
+		}
+	}
+	
+	/**
+	 * parses the response of a getAirConditioningStatus request
+	 * @param acStatusResponse Json response object
+	 * @return                 true if successful, false on error
+	 */
+	boolean parseAirConditioningStatusResponse(JsonObject acStatusResponse) {
+		log.fine("parsing AC status response");
+		acEnabledSuccess   = null;
+
+		try {
+			if(acStatusResponse!=null) {
+				String result = acStatusResponse.getString("result", null);
+				if(result!=null ) {
+					log.fine("AC status response successfully parsed, result="+result);
+					acEnabledSuccess = result.equals("SUCCESS");
+					
+					Long acEnabledUxTime = acStatusResponse.getJsonNumber("date").longValue();
+					if(acEnabledUxTime!=null) {
+						log.fine("AC status date response successfully parsed, result="+acEnabledUxTime);
+						acEnabledTime = LocalTime.ofInstant(Instant.ofEpochMilli(acEnabledUxTime),ZoneId.systemDefault());
+						log.fine("AC status date converted to local time: "+acEnabledTime);
+					}
+					
+					return true;
+				}
+				else {
+					log.warning("AC status response could not be parsed, result is null");
+				}
+			}
+		}
+		catch(JsonParsingException e) {
+			log.warning("JsonParsingException in parseAirCOnditioningStatusResponse: "+e.getMessage());
+		}
+		
+		return false;
 	}
 
 	@Override
@@ -252,21 +337,33 @@ public class RenaultZoeStatusProvider extends Provider {
 			}
 		}
 		
+		// reset values
+		isCharging        = null;
+		chargeLevel       = null;
+		isPlugged         = null;
+		acEnabledSuccess  = null;
+		acEnabledTime     = null;
+		
 		String user       = Configuration.getConfiguration().getValue(renaultZoeStatusPanel.getClass().getSimpleName(), "user", "");
 		String password   = Configuration.getConfiguration().getValue(renaultZoeStatusPanel.getClass().getSimpleName(), "password", "");
-		boolean triggerAC = Configuration.getConfiguration().getValue(renaultZoeStatusPanel.getClass().getSimpleName(), "triggerAirConditioning", false);
 		
 		JsonObject loginResponse = login(user, password);
 		if( loginResponse!=null && parseLoginResponse(loginResponse) ) {
 			JsonObject batteryStatusResponse = getBatteryStatus(token, vin);
 			if(batteryStatusResponse!=null && parseBatteryStatusResponse(batteryStatusResponse)) {
-				renaultZoeStatusPanel.setStatus(isCharging, chargeLevel, isPlugged, false);
+				if(task.equalsIgnoreCase("AC")) {
+					log.fine("triggering AC");
+					triggerAirConditioning(token, vin);
+				}
+				else {
+					log.fine("just retrieving status - AC not triggered");
+				}
 				
-//				if(triggerAC) {
-//					log.fine("triggering air conditioning");
-//					boolean success = triggerAirConditioning(token, vin);
-//					renaultZoeStatusPanel.setStatus(isCharging, chargeLevel, isPlugged, success);
-//				}
+				JsonObject acStatusResponse = getAirConditioningStatus(token, vin);
+				if(acStatusResponse!=null) {
+					parseAirConditioningStatusResponse(acStatusResponse);
+				}
+				renaultZoeStatusPanel.setStatus(isCharging, chargeLevel, isPlugged, acEnabledSuccess, acEnabledTime);
 			}
 		}
 	}
@@ -276,11 +373,14 @@ public class RenaultZoeStatusProvider extends Provider {
 	//
 	private final Logger   log     = Logger.getLogger( this.getClass().getName() );
 	
-	String  token       = null;
-	String  vin         = null;
-	Boolean isCharging  = null;
-	Integer chargeLevel = null;
-	Boolean isPlugged   = null;
+	String  task              = null;
+	String  token             = null;
+	String  vin               = null;
+	Boolean isCharging        = null;
+	Integer chargeLevel       = null;
+	Boolean isPlugged         = null;
+	Boolean acEnabledSuccess  = null;
+	LocalTime acEnabledTime   = null;
 	
 	RenaultZoeStatusPanel renaultZoeStatusPanel = null;
 }

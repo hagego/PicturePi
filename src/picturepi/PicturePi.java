@@ -288,6 +288,8 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 				}
 			}
 			
+			
+			
 			log.info("entering flic event loop");
 			
 			Thread t = new Thread(new Runnable() {
@@ -342,11 +344,10 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 
 		// set panels active to start provider threads
 		log.config("starting provider threads on active views");
-		for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
-			if(viewData.isActive()) {
-				viewData.panel.setActive(true);
-			}
-		}
+		Configuration.getConfiguration().getViewDataList()
+			.stream()
+			.filter(viewData -> viewData.isActive())
+			.forEach(viewData -> viewData.panel.setActive(true));
 				
 		List<ViewData> viewDataList = Configuration.getConfiguration().getViewDataList();
 		Iterator<ViewData> viewIterator = viewDataList.iterator();
