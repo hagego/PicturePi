@@ -58,11 +58,9 @@ class GarbageCollectionPanel extends Panel {
 			
 			// add new icons (if any)
 			trashBinColors.clear();
-			iconLabels = new JLabel[newTrashBinColors.size()];
 			
 			add(Box.createHorizontalGlue());
 			
-			int i = 0;
 			for(TrashBinColors trashBinColor:newTrashBinColors) {
 				// get corresponding icon
 				String iconName = trashBinColor.toString().toLowerCase();
@@ -72,9 +70,9 @@ class GarbageCollectionPanel extends Panel {
 				    icon = new ImageIcon(imageURL);
 				    
 					trashBinColors.add(trashBinColor);
-					iconLabels[i] = new JLabel();
-					iconLabels[i].setIcon(icon);
-					add(iconLabels[i]);
+					JLabel iconLabel = new JLabel();
+					iconLabel.setIcon(icon);
+					add(iconLabel);
 					add(Box.createHorizontalGlue());
 			    }
 			    catch(Exception e) {
@@ -93,5 +91,4 @@ class GarbageCollectionPanel extends Panel {
 
 	private EnumSet<TrashBinColors> trashBinColors;           // currently displayed trashBinColors
 	private String                  iconPostfix = "_bright";  // postfix added to icon filenames (_dark/_bright)
-	private JLabel[]                iconLabels;               // currently displayed icons
 }
