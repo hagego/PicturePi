@@ -424,12 +424,18 @@ public class MyRenaultStatusProvider extends Provider {
 	
 	@Nullable JsonObject getVehicleList(String gigyaJwtToken,String kamereonAccountId,String kamereonToken) {
 		log.config("getting vehicle list");
-		Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-				"apikey", KAMEREON_KEY,
-				"x-kamereon-authorization","Bearer: "+kamereonToken);
-		String url = KAMEREON_URL+"/commerce/v1/accounts/"+kamereonAccountId+"/vehicles?country=DE";
-		
-		return executeHttpGetJsonQuery(url, "application/x-www-form-urlencoded;charset=UTF-8", requestProperties);
+		if(gigyaJwtToken!=null && kamereonAccountId!=null && kamereonToken!=null) {
+			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
+					"apikey", KAMEREON_KEY,
+					"x-kamereon-authorization","Bearer: "+kamereonToken);
+			String url = KAMEREON_URL+"/commerce/v1/accounts/"+kamereonAccountId+"/vehicles?country=DE";
+			
+			return executeHttpGetJsonQuery(url, "application/x-www-form-urlencoded;charset=UTF-8", requestProperties);
+		}
+		else {
+			log.warning("getVehcleList: input parameter is null");
+			return null;
+		}
 	}
 	
 	@Nullable String parseVehicleList(JsonObject response) {
@@ -460,12 +466,19 @@ public class MyRenaultStatusProvider extends Provider {
 	
 	@Nullable JsonObject getBatteryStatus(String gigyaJwtToken,String kamereonAccountId,String kamereonToken,String vin) {
 		log.config("getting battery status");
-		Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-				"apikey", KAMEREON_KEY,
-				"x-kamereon-authorization","Bearer "+kamereonToken);
-		String url = KAMEREON_URL+"/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/"+vin+"/battery-status";
 		
-		return executeHttpGetJsonQuery(url, "application/vnd.api+json", requestProperties);
+		if(gigyaJwtToken!=null && kamereonAccountId!=null && kamereonToken!=null && vin!=null) {
+			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
+					"apikey", KAMEREON_KEY,
+					"x-kamereon-authorization","Bearer "+kamereonToken);
+			String url = KAMEREON_URL+"/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/"+vin+"/battery-status";
+			
+			return executeHttpGetJsonQuery(url, "application/vnd.api+json", requestProperties);
+		}
+		else {
+			log.warning("getBatteryStatus: parameter is null");
+			return null;
+		}
 	}
 	
 	/**
@@ -477,28 +490,34 @@ public class MyRenaultStatusProvider extends Provider {
 	 * @return true in case of success, otherwise false
 	 */
 	boolean enableAc(String gigyaJwtToken,String kamereonAccountId,String kamereonToken,String vin) {
-		Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-				"apikey", KAMEREON_KEY,
-				"x-kamereon-authorization","Bearer "+kamereonToken);
-		
-		 JsonBuilderFactory factory = Json.createBuilderFactory(null);
-		 JsonObject value = factory.createObjectBuilder()
-		     .add("data", factory.createObjectBuilder()
-		         .add("type", "HvacStart")
-		         .add("attributes", factory.createObjectBuilder()
-		             .add("action","start")
-		        	 .add("targetTemperature", 21)))
-		     .build();
-		 
-		 log.fine("JSON object: "+value.toString());
-		 
-		 JsonObject rc = executeHttpPostJsonQuery(KAMEREON_URL+"/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/"+vin+"/actions/hvac-start", "application/vnd.api+json", value.toString(),requestProperties);
-		 
-		 if(rc!=null) {
-			 log.fine("return value:"+rc.toString());
-		 }
-		 
-		 return rc!=null;
+		if(gigyaJwtToken!=null && kamereonAccountId!=null && kamereonToken!=null && vin!=null) {
+			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
+					"apikey", KAMEREON_KEY,
+					"x-kamereon-authorization","Bearer "+kamereonToken);
+			
+			 JsonBuilderFactory factory = Json.createBuilderFactory(null);
+			 JsonObject value = factory.createObjectBuilder()
+			     .add("data", factory.createObjectBuilder()
+			         .add("type", "HvacStart")
+			         .add("attributes", factory.createObjectBuilder()
+			             .add("action","start")
+			        	 .add("targetTemperature", 21)))
+			     .build();
+			 
+			 log.fine("JSON object: "+value.toString());
+			 
+			 JsonObject rc = executeHttpPostJsonQuery(KAMEREON_URL+"/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/"+vin+"/actions/hvac-start", "application/vnd.api+json", value.toString(),requestProperties);
+			 
+			 if(rc!=null) {
+				 log.fine("return value:"+rc.toString());
+			 }
+			 
+			 return rc!=null;
+		}
+		else {
+			log.warning("enableAC: parameter is null");
+			return false;
+		}
 	}
 	
 

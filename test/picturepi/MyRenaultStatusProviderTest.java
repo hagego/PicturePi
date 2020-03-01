@@ -8,6 +8,7 @@ import javax.json.JsonObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 class MyRenaultStatusProviderTest {
 
@@ -36,6 +37,7 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
 	void testLoginWithValidUser() {
 		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
 		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
@@ -109,6 +111,7 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
 	void testGetGigyaAccountWithValidData() {
 		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
 		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
@@ -186,6 +189,7 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
 	void testGetGigyaJwtTokenWithValidData() {
 		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
 		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
@@ -236,6 +240,7 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
 	void testGetKamereonAccountIdWithValidData() {
 		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
 		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
@@ -325,6 +330,7 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
 	void testGetKamereonTokenWithValidData() {
 		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
 		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
@@ -369,6 +375,7 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
 	void testGetVehicleListWithValidData() {
 		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
 		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
@@ -510,6 +517,7 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
 	void testGetBatteryStatusWithValidData() {
 		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
 		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
@@ -528,6 +536,7 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
 	void testEnableAc() {
 		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
 		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
