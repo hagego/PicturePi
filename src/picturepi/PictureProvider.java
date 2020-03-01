@@ -85,10 +85,15 @@ public class PictureProvider extends Provider {
 				}
 	    	});
 	    	
-	    	log.fine("found "+files.length+" files in common directory "+commonDir);
-	    	for(String file:files) {
-    			log.finest("Adding picture "+file);
-    			imageList.add(new File(commonDir,file));
+	    	if(files==null) {
+	    		log.severe("Unable to retrieve files from common directory - null returned");
+	    	}
+	    	else {
+		    	log.fine("found "+files.length+" files in common directory "+commonDir);
+		    	for(String file:files) {
+	    			log.finest("Adding picture "+file);
+	    			imageList.add(new File(commonDir,file));
+		    	}
 	    	}
 	    	
 	    	// add pictures for the month
@@ -103,10 +108,16 @@ public class PictureProvider extends Provider {
 						 return (name.endsWith("jpg") || name.endsWith("jpeg"));
 					}
 		    	});
-		    	log.fine("found "+files.length+" files in month directory "+monthDir);
-		    	for(String file:files) {
-	    			log.finest("Adding picture "+file);
-	    			imageList.add(new File(monthDir,file));
+		    	
+		    	if(files==null) {
+		    		log.severe("Unable to retrieve files from common directory - null returned");
+		    	}
+		    	else {
+			    	log.fine("found "+files.length+" files in month directory "+monthDir);
+			    	for(String file:files) {
+		    			log.finest("Adding picture "+file);
+		    			imageList.add(new File(monthDir,file));
+			    	}
 		    	}
     	    }
 	    	
@@ -122,10 +133,16 @@ public class PictureProvider extends Provider {
 						 return (name.endsWith("jpg") || name.endsWith("jpeg"));
 					}
 		    	});
-		    	log.fine("found "+files.length+" files in day directory "+dayDir);
-		    	for(String file:files) {
-	    			log.finest("Adding picture "+file);
-	    			imageList.add(new File(dayDir,file));
+		    	
+		    	if(files==null) {
+		    		log.severe("Unable to retrieve files from common directory - null returned");
+		    	}
+		    	else {
+			    	log.fine("found "+files.length+" files in day directory "+dayDir);
+			    	for(String file:files) {
+		    			log.finest("Adding picture "+file);
+		    			imageList.add(new File(dayDir,file));
+			    	}
 		    	}
     	    }
 	    	

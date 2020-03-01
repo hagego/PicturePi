@@ -158,23 +158,18 @@ public class GoogleCalendar {
 	            		request.setTimeMin(start);
 	            		request.setTimeMax(end);
 	            		
-	            		String pageToken = null;
 	            		Events events = null;
+	            		events = request.execute();
 	            		
-	            		do {
-		            		request.setPageToken(pageToken);
-		            		events = request.execute();
-		            		
-		            	    List<Event> items = events.getItems();
-		            	    if (items.size() == 0) {
-		            	    	log.fine("No calendar items found");
-		            	    } else {
-		            	        for (Event event : items) {
-		            	        	log.fine("Found calendar item: "+event.getSummary());
-		            	        	entries.add(event.getSummary());
-		            	        }
-		            	    }
-	            		} while(pageToken!=null);
+	            	    List<Event> items = events.getItems();
+	            	    if (items.size() == 0) {
+	            	    	log.fine("No calendar items found");
+	            	    } else {
+	            	        for (Event event : items) {
+	            	        	log.fine("Found calendar item: "+event.getSummary());
+	            	        	entries.add(event.getSummary());
+	            	        }
+	            	    }
 	            		
 	            		break;
 	            	}

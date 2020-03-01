@@ -223,7 +223,7 @@ public class TomTomTrafficProvider extends Provider {
 	RouteData parseRoutingData(JsonObject jsonRoutingObject) {
 		JsonArray jsonRouteArray = jsonRoutingObject.getJsonArray("routes");
 		if(jsonRouteArray==null || jsonRouteArray.size()<1) {
-			log.severe("invalid JSON data: no routes array found in "+jsonRouteArray.toString());
+			log.severe("invalid JSON data: no routes array found.");
 			return null;
 		}
 		

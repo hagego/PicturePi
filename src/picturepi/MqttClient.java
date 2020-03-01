@@ -167,6 +167,9 @@ public class MqttClient implements MqttCallbackExtended{
 		
 		@Override
 		public boolean equals(Object obj) {
+			if(obj==null) {
+				return false;
+			}
 			Topic t = (Topic)obj;
 			return topic.equals(t.topic) && listener.equals(t.listener);
 		}
