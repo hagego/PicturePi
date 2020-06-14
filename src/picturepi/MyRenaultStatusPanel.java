@@ -96,10 +96,10 @@ public class MyRenaultStatusPanel extends Panel {
 		
 		constraints.gridx = 0;
 		constraints.gridy = 5;
-		JLabel labelAcEnabled = new JLabel("Klimaanlage an:");
-		labelAcEnabled.setFont(font);
-		labelAcEnabled.setForeground(Color.MAGENTA);
-		add(labelAcEnabled,constraints);
+		JLabel labelAcEnabledHeader = new JLabel("Klimaanlage an:");
+		labelAcEnabledHeader.setFont(font);
+		labelAcEnabledHeader.setForeground(Color.MAGENTA);
+		add(labelAcEnabledHeader,constraints);
 		
 		constraints.gridx = 1;
 		labelAcEnabled = new JLabel("--");

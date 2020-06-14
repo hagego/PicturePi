@@ -24,10 +24,11 @@ public class MqttClient implements MqttCallbackExtended{
 	 * @param brokerAddress MQTT broker address
 	 * @param brokerPort    MQTT broker port
 	 */
-	private MqttClient(String brokerAddress, int brokerPort, String clientId) {
+	private MqttClient(String brokerAddress, int brokerPort, int keepalive, String clientId) {
 			try {
 				MqttConnectOptions connectOptions = new MqttConnectOptions();
 				connectOptions.setAutomaticReconnect(true);
+				connectOptions.setKeepAliveInterval(keepalive);
 				
 				isConnected = new AtomicBoolean(false);
 
@@ -59,6 +60,7 @@ public class MqttClient implements MqttCallbackExtended{
 			if(Configuration.getConfiguration().getValue("mqtt", "address",null)!=null) {
 				theObject = new MqttClient(Configuration.getConfiguration().getValue("mqtt", "address",null),
 						                   Configuration.getConfiguration().getValue("mqtt", "port", 1883),
+						                   Configuration.getConfiguration().getValue("mqtt", "keepalive", 900),
 						                   Configuration.getConfiguration().getValue("global", "name","PicturePi"));
 			}
 		}

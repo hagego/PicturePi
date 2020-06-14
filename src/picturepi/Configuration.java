@@ -30,10 +30,6 @@ class Configuration {
 	 * @return the Configuration singleton object
 	 */
 	static Configuration getConfiguration() {
-		if(configuration==null) {
-			configuration = new Configuration();
-		}
-		
 		return configuration;
 	}
 
@@ -347,7 +343,11 @@ class Configuration {
 	//
 	// member variables
 	//
-	static               Configuration configuration = null;                 //singleton object
+	private static       Configuration configuration;          //singleton object
+	static {
+		configuration = new Configuration();
+	}
+	
 	private static final Logger        log           = Logger.getLogger( Configuration.class.getName() );
 
 	private final    Ini            iniFile            = new Ini();               // ini4j object
