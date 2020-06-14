@@ -28,7 +28,7 @@ public class GarageDoorProvider extends Provider {
 	synchronized protected void fetchData() {
 		if(mqttTopic!=null) {
 			log.fine("toggling garage door");
-			MqttClient.getMqttClient().publish(mqttTopic, new String());
+			MqttClient.getMqttClient().publish(mqttTopic, new String("toggle"));
 		}
 		else {
 			log.warning("No MQTT topic defined - functionality disabled");
