@@ -7,6 +7,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
@@ -324,55 +325,6 @@ class MyRenaultStatusProviderTest {
 		assertEquals(provider.parseKamereonAccountId(jsonResponseObject),"myAccountId");
 	}
 	
-	@Test
-	void testGetKamereonTokenWithInValidData() {
-		assertNull(provider.getKamereonToken("myToken","myAccountId")); 
-	}
-	
-	@Test
-	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
-	void testGetKamereonTokenWithValidData() {
-		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
-		
-		String cookieValue = provider.parseLoginResponse(provider.login(user, password));
-		
-		String jwtToken = provider.parseGigyaJwtToken(provider.getGigyaJwtToken(cookieValue));
-		String personId = provider.parseGigyaAccountInformation(provider.getGigyaAccount(cookieValue));
-		
-		String accountId = provider.parseKamereonAccountId(provider.getKamereonAccountId(jwtToken,personId));
-		
-		assertNotNull(provider.getKamereonToken(jwtToken, accountId));
-	}
-
-	@Test
-	void testParseKamereonTokenWithValidData() {
-		final String responseString = 
-				  "{"
-				+ "  \"nonce\":\"123\","
-				+ "  \"scope\":\"openid profile vehicles\","
-				+ "  \"accessToken\":\"myToken\","
-				+ "  \"tokenType\":\"Bearer\","
-				+ "  \"expiresIn\":3599"
-				+ "}";
-		
-		JsonObject jsonResponseObject = Json.createReaderFactory(null).createReader(new StringReader(responseString)).readObject();
-		assertEquals(provider.parseKamereonToken(jsonResponseObject),"myToken");
-	}
-	
-	@Test
-	void testParseKamereonTokenWithInvalidData() {
-		final String responseString = 
-				  "{"
-				+ "  \"nonce\":\"123\","
-				+ "  \"scope\":\"openid profile vehicles\","
-				+ "  \"tokenType\":\"Bearer\","
-				+ "  \"expiresIn\":3599"
-				+ "}";
-		
-		JsonObject jsonResponseObject = Json.createReaderFactory(null).createReader(new StringReader(responseString)).readObject();
-		assertNull(provider.parseKamereonToken(jsonResponseObject));
-	}
 	
 	@Test
 	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
@@ -386,9 +338,8 @@ class MyRenaultStatusProviderTest {
 		String personId = provider.parseGigyaAccountInformation(provider.getGigyaAccount(cookieValue));
 		
 		String accountId = provider.parseKamereonAccountId(provider.getKamereonAccountId(jwtToken,personId));
-		String kamereonToken = provider.parseKamereonToken(provider.getKamereonToken(jwtToken, accountId));
 		
-		assertNotNull(provider.getVehicleList(jwtToken, accountId, kamereonToken));
+		assertNotNull(provider.getVehicleList(jwtToken, accountId));
 	}
 	
 	@Test
@@ -528,35 +479,34 @@ class MyRenaultStatusProviderTest {
 		String personId = provider.parseGigyaAccountInformation(provider.getGigyaAccount(cookieValue));
 		
 		String accountId = provider.parseKamereonAccountId(provider.getKamereonAccountId(jwtToken,personId));
-		String kamereonToken = provider.parseKamereonToken(provider.getKamereonToken(jwtToken, accountId));
 		
-		String vin = provider.parseVehicleList(provider.getVehicleList(jwtToken, accountId, kamereonToken));
+		String vin = provider.parseVehicleList(provider.getVehicleList(jwtToken, accountId));
 		
-		assertNotNull(provider.getBatteryStatus(jwtToken, accountId, kamereonToken,vin));
+		assertNotNull(provider.getBatteryStatus(jwtToken, accountId,vin));
 	}
 	
-	@Test
-	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
-	void testEnableAc() {
-		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
-		
-		String cookieValue = provider.parseLoginResponse(provider.login(user, password));
-		
-		String jwtToken = provider.parseGigyaJwtToken(provider.getGigyaJwtToken(cookieValue));
-		String personId = provider.parseGigyaAccountInformation(provider.getGigyaAccount(cookieValue));
-		
-		String accountId = provider.parseKamereonAccountId(provider.getKamereonAccountId(jwtToken,personId));
-		String kamereonToken = provider.parseKamereonToken(provider.getKamereonToken(jwtToken, accountId));
-		
-		String vin = provider.parseVehicleList(provider.getVehicleList(jwtToken, accountId, kamereonToken));
-		
-		assertTrue(provider.enableAc(jwtToken, accountId, kamereonToken,vin));
-	}
+//	@Test
+//	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
+//	void testEnableAc() {
+//		System.out.println("TEST_ENABLE_AC");
+//		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
+//		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
+//		
+//		String cookieValue = provider.parseLoginResponse(provider.login(user, password));
+//		
+//		String jwtToken = provider.parseGigyaJwtToken(provider.getGigyaJwtToken(cookieValue));
+//		String personId = provider.parseGigyaAccountInformation(provider.getGigyaAccount(cookieValue));
+//		
+//		String accountId = provider.parseKamereonAccountId(provider.getKamereonAccountId(jwtToken,personId));
+//		
+//		String vin = provider.parseVehicleList(provider.getVehicleList(jwtToken, accountId));
+//		
+//		assertTrue(provider.enableAc(jwtToken, accountId,vin));
+//	}
 	
 	@Test
 	void testEnableAcWithInvalidData() {
-		assertFalse(provider.enableAc("","","","myVIN"));
+		assertFalse(provider.enableAc("","","myVIN"));
 	}
 
 	

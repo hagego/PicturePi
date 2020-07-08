@@ -173,9 +173,12 @@ public class MyRenaultStatusProvider extends Provider {
 	@Nullable JsonObject executeHttpGetJsonQuery(String urlString, String contentType, @Nullable Map<String,String> requestProperties) {
 		log.config("executing HTTP GET query for URL "+urlString);
 		
+		HttpURLConnection con = null;
 		try {
 			URL url = new URL (urlString);
-			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			con = (HttpURLConnection)url.openConnection();
+			log.fine("connection opened");
+			
 			con.setRequestMethod("GET");
 			con.setRequestProperty("Content-Type", contentType);
 			con.setRequestProperty("Accept", "application/json");
@@ -189,13 +192,15 @@ public class MyRenaultStatusProvider extends Provider {
 			con.setDoInput(true);
 			con.setDoOutput(true);
 			
-			BufferedReader br = new BufferedReader(
-			  new InputStreamReader(con.getInputStream(), "utf-8"));
-			    StringBuilder response = new StringBuilder();
-			    String responseLine = null;
-			    while ((responseLine = br.readLine()) != null) {
-			        response.append(responseLine.trim());
-			    }
+			log.fine("creating reader");
+			BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"));
+			StringBuilder response = new StringBuilder();
+			String responseLine = null;
+			log.fine("reading...");
+			while ((responseLine = br.readLine()) != null) {
+		      log.fine("line read");
+			  response.append(responseLine.trim());
+			}
 			JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(response.toString()));
 			JsonObject jsonObject    = reader.readObject();
 			
@@ -208,7 +213,14 @@ public class MyRenaultStatusProvider extends Provider {
 			return null;
 		} catch (IOException e) {
 			log.severe("IOException: "+e.getMessage());
-			
+			if(con!=null) {
+				try {
+					log.severe(con.getResponseMessage());
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
 			return null;
 		}
 	}
@@ -390,44 +402,13 @@ public class MyRenaultStatusProvider extends Provider {
 		return null;
 	}
 	
-	
-	@Nullable JsonObject getKamereonToken(String gigyaJwtToken,String kamereonAccountId) {
-		log.config("getting kamereon token");
-		if(gigyaJwtToken==null || kamereonAccountId==null) {
-			log.warning("getting kamereon token: input parameter is null. Token="+gigyaJwtToken+" account ID="+kamereonAccountId);
-			
-			return null;
-		}
 		
-		Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken, "apikey", KAMEREON_KEY);
-		String url = KAMEREON_URL+"/commerce/v1/accounts/"+kamereonAccountId+"/kamereon/token?country=DE";
-		
-		return executeHttpGetJsonQuery(url, "application/x-www-form-urlencoded;charset=UTF-8", requestProperties);
-	}
-	
-	@Nullable String parseKamereonToken(JsonObject response) {
-		log.fine("parsing Kamereon token");
-		
-		if(response!=null) {
-			JsonString jsonStringToken = response.getJsonString("accessToken");
-			if(jsonStringToken!=null) {
-				log.fine("found kamereon token: "+jsonStringToken.getString());
-				
-				return jsonStringToken.getString();
-			}
-		}
-		
-		log.warning("Unable to find kamereon token");
-		
-		return null;
-	}
-	
-	@Nullable JsonObject getVehicleList(String gigyaJwtToken,String kamereonAccountId,String kamereonToken) {
+	@Nullable JsonObject getVehicleList(String gigyaJwtToken,String kamereonAccountId) {
 		log.config("getting vehicle list");
-		if(gigyaJwtToken!=null && kamereonAccountId!=null && kamereonToken!=null) {
+		if(gigyaJwtToken!=null && kamereonAccountId!=null ) {
 			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-					"apikey", KAMEREON_KEY,
-					"x-kamereon-authorization","Bearer: "+kamereonToken);
+					"apikey", KAMEREON_KEY);
+					//"x-kamereon-authorization","Bearer: "+kamereonToken);
 			String url = KAMEREON_URL+"/commerce/v1/accounts/"+kamereonAccountId+"/vehicles?country=DE";
 			
 			return executeHttpGetJsonQuery(url, "application/x-www-form-urlencoded;charset=UTF-8", requestProperties);
@@ -464,14 +445,15 @@ public class MyRenaultStatusProvider extends Provider {
 		return null;
 	}
 	
-	@Nullable JsonObject getBatteryStatus(String gigyaJwtToken,String kamereonAccountId,String kamereonToken,String vin) {
+	@Nullable JsonObject getBatteryStatus(String gigyaJwtToken,String kamereonAccountId, String vin) {
 		log.config("getting battery status");
 		
-		if(gigyaJwtToken!=null && kamereonAccountId!=null && kamereonToken!=null && vin!=null) {
+		if(gigyaJwtToken!=null && kamereonAccountId!=null && vin!=null) {
 			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-					"apikey", KAMEREON_KEY,
-					"x-kamereon-authorization","Bearer "+kamereonToken);
-			String url = KAMEREON_URL+"/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/"+vin+"/battery-status";
+					"apikey", KAMEREON_KEY);
+			// String url = KAMEREON_URL+"/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/"+vin+"/battery-status";
+			// changed, see: https://github.com/jamesremuscat/pyze/issues/34
+			String url = KAMEREON_URL+"/commerce/v1/accounts/"+kamereonAccountId+"/kamereon/kca/car-adapter/v1/cars/"+vin+"/battery-status?country=DE";
 			
 			return executeHttpGetJsonQuery(url, "application/vnd.api+json", requestProperties);
 		}
@@ -489,11 +471,11 @@ public class MyRenaultStatusProvider extends Provider {
 	 * @param vin
 	 * @return true in case of success, otherwise false
 	 */
-	boolean enableAc(String gigyaJwtToken,String kamereonAccountId,String kamereonToken,String vin) {
-		if(gigyaJwtToken!=null && kamereonAccountId!=null && kamereonToken!=null && vin!=null) {
+	boolean enableAc(String gigyaJwtToken,String kamereonAccountId,String vin) {
+		if(gigyaJwtToken!=null && kamereonAccountId!=null ) {
 			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-					"apikey", KAMEREON_KEY,
-					"x-kamereon-authorization","Bearer "+kamereonToken);
+					"apikey", KAMEREON_KEY);
+					//"x-kamereon-authorization","Bearer "+kamereonToken);
 			
 			 JsonBuilderFactory factory = Json.createBuilderFactory(null);
 			 JsonObject value = factory.createObjectBuilder()
@@ -506,7 +488,12 @@ public class MyRenaultStatusProvider extends Provider {
 			 
 			 log.fine("JSON object: "+value.toString());
 			 
-			 JsonObject rc = executeHttpPostJsonQuery(KAMEREON_URL+"/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/"+vin+"/actions/hvac-start", "application/vnd.api+json", value.toString(),requestProperties);
+			 // TODO: URL changed
+			 // see : https://github.com/jamesremuscat/pyze/issues/34
+			 String url = KAMEREON_URL+"/commerce/v1/accounts/"+kamereonAccountId+"/kamereon/kca/car-adapter/v1/cars/"+vin+"/actions/hvac-start?country=DE";
+			 JsonObject rc = executeHttpPostJsonQuery(url, "application/vnd.api+json", value.toString(),requestProperties);
+			 
+			 
 			 
 			 if(rc!=null) {
 				 log.fine("return value:"+rc.toString());
@@ -543,10 +530,9 @@ public class MyRenaultStatusProvider extends Provider {
 		String jwtToken      = parseGigyaJwtToken(getGigyaJwtToken(cookieValue));
 		String personId      = parseGigyaAccountInformation(getGigyaAccount(cookieValue));
 		String accountId     = parseKamereonAccountId(getKamereonAccountId(jwtToken,personId));
-		String kamereonToken = parseKamereonToken(getKamereonToken(jwtToken, accountId));
-		String vin           = parseVehicleList(getVehicleList(jwtToken, accountId, kamereonToken));
+		String vin           = parseVehicleList(getVehicleList(jwtToken, accountId));
 		
-		JsonObject jsonObjectBatteryStatus = getBatteryStatus(jwtToken, accountId, kamereonToken, vin);
+		JsonObject jsonObjectBatteryStatus = getBatteryStatus(jwtToken, accountId, vin);
 		
 		/* 
 		  sample response for battery status
@@ -596,7 +582,7 @@ public class MyRenaultStatusProvider extends Provider {
 			
 			if(task!=null && task.equalsIgnoreCase("AC")) {
 				log.fine("triggering AC");
-				acEnabled = enableAc(jwtToken, accountId, kamereonToken, vin);
+				acEnabled = enableAc(jwtToken, accountId, vin);
 			}
 			else {
 				log.fine("just retrieving status - AC not triggered");
