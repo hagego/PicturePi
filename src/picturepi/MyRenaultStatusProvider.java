@@ -10,6 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -235,7 +236,15 @@ public class MyRenaultStatusProvider extends Provider {
 	@Nullable JsonObject login(String user, String password) {
 		log.config("logging in to MyRenault Services as user "+user);
 		
-		Map<String, String> inputParameter = Map.of("loginID",user, "password",password, "apiKey",GIGYA_KEY);
+		// requires Java 9
+		// Map<String, String> inputParameter = Map.of("loginID",user, "password",password, "apiKey",GIGYA_KEY);
+
+		@SuppressWarnings("serial")
+		HashMap<String, String> inputParameter = new HashMap<String, String>() {{
+		    put("loginID",user);
+		    put("password",password);
+		    put("apiKey",GIGYA_KEY);
+		}};
 		return executeHttpPostJsonQuery(GIGYA_URL+"/accounts.login", "application/x-www-form-urlencoded;charset=UTF-8", inputParameter);
 	}
 	
@@ -278,7 +287,14 @@ public class MyRenaultStatusProvider extends Provider {
 			return null;
 		}
 		
-		Map<String, String> inputParameter = Map.of("oauth_token",cookieValue);
+		// requires Java 9
+		// Map<String, String> inputParameter = Map.of("oauth_token",cookieValue);
+
+		@SuppressWarnings("serial")
+		HashMap<String, String> inputParameter = new HashMap<String, String>() {{
+		    put("oauth_token",cookieValue);
+		}};
+		
 		return executeHttpPostJsonQuery(GIGYA_URL+"/accounts.getAccountInfo", "application/x-www-form-urlencoded;charset=UTF-8", inputParameter);
 	}
 	
@@ -321,9 +337,17 @@ public class MyRenaultStatusProvider extends Provider {
 			return null;
 		}
 		
-		Map<String, String> inputParameter = Map.of("oauth_token",cookieValue,
-				"fields","data.personId,data.gigyaDataCenter",
-				"expiration","900");
+		// requires Java 9
+//		Map<String, String> inputParameter = Map.of("oauth_token",cookieValue,
+//				"fields","data.personId,data.gigyaDataCenter",
+//				"expiration","900");
+		
+		@SuppressWarnings("serial")
+		HashMap<String, String> inputParameter = new HashMap<String, String>() {{
+		    put("oauth_token",cookieValue);
+		    put("fields","data.personId,data.gigyaDataCenter");
+		    put("expiration","900");
+		}};
 		return executeHttpPostJsonQuery(GIGYA_URL+"/accounts.getJWT", "application/x-www-form-urlencoded;charset=UTF-8", inputParameter);
 	}
 	
@@ -364,7 +388,15 @@ public class MyRenaultStatusProvider extends Provider {
 			return null;
 		}
 		
-		Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken, "apikey", KAMEREON_KEY);
+		// requires Java 9
+		// Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken, "apikey", KAMEREON_KEY);
+		
+		@SuppressWarnings("serial")
+		HashMap<String, String> requestProperties = new HashMap<String, String>() {{
+		    put("x-gigya-id_token",gigyaJwtToken);
+		    put("apikey", KAMEREON_KEY);
+		}};
+		
 		String url = KAMEREON_URL+"/commerce/v1/persons/"+gigyaPersonId+"?country=DE";
 		
 		return executeHttpGetJsonQuery(url, "application/x-www-form-urlencoded;charset=UTF-8", requestProperties);
@@ -406,9 +438,17 @@ public class MyRenaultStatusProvider extends Provider {
 	@Nullable JsonObject getVehicleList(String gigyaJwtToken,String kamereonAccountId) {
 		log.config("getting vehicle list");
 		if(gigyaJwtToken!=null && kamereonAccountId!=null ) {
-			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-					"apikey", KAMEREON_KEY);
-					//"x-kamereon-authorization","Bearer: "+kamereonToken);
+			// requires Java 9
+//			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
+//					"apikey", KAMEREON_KEY);
+			
+			@SuppressWarnings("serial")
+			HashMap<String, String> requestProperties = new HashMap<String, String>() {{
+			    put("x-gigya-id_token",gigyaJwtToken);
+			    put("apikey", KAMEREON_KEY);
+			}};
+			
+			
 			String url = KAMEREON_URL+"/commerce/v1/accounts/"+kamereonAccountId+"/vehicles?country=DE";
 			
 			return executeHttpGetJsonQuery(url, "application/x-www-form-urlencoded;charset=UTF-8", requestProperties);
@@ -449,8 +489,17 @@ public class MyRenaultStatusProvider extends Provider {
 		log.config("getting battery status");
 		
 		if(gigyaJwtToken!=null && kamereonAccountId!=null && vin!=null) {
-			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-					"apikey", KAMEREON_KEY);
+			// requires Java 9
+//			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
+//					"apikey", KAMEREON_KEY);
+			
+			@SuppressWarnings("serial")
+			HashMap<String, String> requestProperties = new HashMap<String, String>() {{
+			    put("x-gigya-id_token",gigyaJwtToken);
+			    put("apikey", KAMEREON_KEY);
+			}};
+			
+			
 			// String url = KAMEREON_URL+"/commerce/v1/accounts/kmr/remote-services/car-adapter/v1/cars/"+vin+"/battery-status";
 			// changed, see: https://github.com/jamesremuscat/pyze/issues/34
 			String url = KAMEREON_URL+"/commerce/v1/accounts/"+kamereonAccountId+"/kamereon/kca/car-adapter/v1/cars/"+vin+"/battery-status?country=DE";
@@ -473,9 +522,15 @@ public class MyRenaultStatusProvider extends Provider {
 	 */
 	boolean enableAc(String gigyaJwtToken,String kamereonAccountId,String vin) {
 		if(gigyaJwtToken!=null && kamereonAccountId!=null ) {
-			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
-					"apikey", KAMEREON_KEY);
-					//"x-kamereon-authorization","Bearer "+kamereonToken);
+			// requires Java 9
+//			Map<String, String> requestProperties = Map.of("x-gigya-id_token",gigyaJwtToken,
+//					"apikey", KAMEREON_KEY);
+
+			@SuppressWarnings("serial")
+			HashMap<String, String> requestProperties = new HashMap<String, String>() {{
+			    put("x-gigya-id_token",gigyaJwtToken);
+			    put("apikey", KAMEREON_KEY);
+			}};
 			
 			 JsonBuilderFactory factory = Json.createBuilderFactory(null);
 			 JsonObject value = factory.createObjectBuilder()

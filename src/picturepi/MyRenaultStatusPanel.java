@@ -16,9 +16,20 @@ import javax.swing.JLabel;
  */
 public class MyRenaultStatusPanel extends Panel {
 
+	public MyRenaultStatusPanel() {
+		super(new MyRenaultStatusProvider(null));
+		
+		init();
+	}
+	
+	
 	public MyRenaultStatusPanel(String task) {
 		super(new MyRenaultStatusProvider(task));
 		
+		init();
+	}
+	
+	private void init() {
 		setBackground(Color.BLACK);
 		setLayout(new GridBagLayout());
 		

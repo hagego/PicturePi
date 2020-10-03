@@ -323,10 +323,12 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 			// first check if panel already exists
 			motionDetectedPanel = null;
 			for(ViewData viewData:Configuration.getConfiguration().getViewDataList()) {
-				log.fine("view has panel class: "+viewData.panel.getClass().getName());
-				if(motionDetectedPanel==null && viewData.panel.getClass().getName().equals("picturepi."+motionDetectedPanelName)) {
-					log.fine("motion detected panel already exists in scheduler");
-					motionDetectedPanel = viewData.panel;
+				if(viewData.panel!=null) {
+					log.fine("view has panel class: "+viewData.panel.getClass().getName());
+					if(motionDetectedPanel==null && viewData.panel.getClass().getName().equals("picturepi."+motionDetectedPanelName)) {
+						log.fine("motion detected panel already exists in scheduler");
+						motionDetectedPanel = viewData.panel;
+					}
 				}
 			}
 			
@@ -347,6 +349,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		Configuration.getConfiguration().getViewDataList()
 			.stream()
 			.filter(viewData -> viewData.isActive())
+			.filter(viewData -> viewData.panel!=null)
 			.forEach(viewData -> viewData.panel.setActive(true));
 				
 		List<ViewData> viewDataList = Configuration.getConfiguration().getViewDataList();
@@ -380,21 +383,21 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 						nextView = viewIterator.next();
 						
 						// ensure that providers of inactive views are stopped
-						if(!nextView.isActive() && nextView.panel.isActive()) {
+						if(!nextView.isActive() && nextView.panel!=null && nextView.panel.isActive()) {
 							log.fine("de-activating view "+nextView.name);
 							nextView.panel.setActive(false);
 						}
 						
 						// ensure that providers get started if view just gets active again
-						if(nextView.isActive() && !nextView.panel.isActive()) {
+						if(nextView.isActive() && nextView.panel!=null && !nextView.panel.isActive()) {
 							// panel just got activated again. re-start provider.
 							log.fine("re-activating view "+nextView.name);
 							nextView.panel.setActive(true);
 						}
 					}
-					while ((!nextView.isActive() || !nextView.panel.hasData()) && nextView != lastView);
+					while ((nextView.panel==null || !nextView.isActive() || !nextView.panel.hasData()) && nextView != lastView);
 					
-					if(nextView.isActive() && nextView.panel.hasData()) {
+					if(nextView.isActive() && nextView.panel!=null && nextView.panel.hasData()) {
 						// active view found that has data to display or is not active yet
 						// (if panel is not active, provider is not started so it cannot have data)
 						

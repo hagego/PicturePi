@@ -29,6 +29,7 @@ public abstract class Panel extends JPanel {
 	static Panel createPanelFromName(final String panelName,final String id) {
 		Panel panel = null;
 		
+		log.fine("creating panel "+panelName+", id="+id);
 		try {
 			Class<?> panelClass = Class.forName("picturepi."+panelName);
 			if(id!=null) {
