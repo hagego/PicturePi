@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import javax.json.Json;
@@ -103,6 +104,75 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 			textWatchpanel.setTimeText(msg1,msg2);
 			lastIndex = index;
 		}
+		
+		if(alarmListUpdated.get()==true) {
+			parseAlarmList(alarmListString);
+			alarmListUpdated.set(false);
+		}
+	}
+	
+	private void parseAlarmList(String alarmListString) {
+		log.fine("parsing alarm data");
+		
+		JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(alarmListString));
+		JsonObject jsonObject = reader.readObject();
+		
+		JsonArray alarmList = jsonObject.getJsonArray("alarms");
+		
+		// search for alarm scheduled for today or tomorrow
+		LocalTime alarmTimeToday    = null;
+		LocalTime alarmTimeTomorrow = null;
+		String weekDayToday    = LocalDate.now().getDayOfWeek().toString();
+		String weekDayTomorrow = LocalDate.now().plusDays(1).getDayOfWeek().toString();
+		
+		for(int i=0 ; i<alarmList.size() ; i++) {
+			JsonObject alarm = alarmList.getJsonObject(i);
+			boolean enabled  = alarm.getBoolean("enabled");
+			boolean skipOnce = alarm.getBoolean("skipOnce");
+			
+			if(enabled && !skipOnce) {
+				String alarmWeekDays = alarm.getJsonString("weekDays").toString();
+				log.fine("found active alarm with weekDays: "+alarmWeekDays);
+				
+				if(alarmWeekDays.contains(weekDayToday)) {
+			    	String alarmTimeString = alarm.getString("time");
+			    	log.fine("found active alarm for today with time="+alarmTimeString);
+			    	
+			    	LocalTime alarmTime = LocalTime.parse(alarmTimeString, DateTimeFormatter.ofPattern("HH:mm"));
+			    	if(alarmTime.isAfter(LocalTime.now()) && (alarmTimeToday==null || alarmTime.isBefore(alarmTimeToday))) {
+			    		alarmTimeToday = alarmTime;
+			    	}
+				}
+				if(alarmWeekDays.contains(weekDayTomorrow)) {
+			    	String alarmTimeString = alarm.getString("time");
+			    	log.fine("found active alarm for tomorrow with time="+alarmTimeString);
+			    	
+			    	LocalTime alarmTime = LocalTime.parse(alarmTimeString, DateTimeFormatter.ofPattern("HH:mm"));
+			    	if(alarmTimeTomorrow==null || alarmTime.isBefore(alarmTimeTomorrow)) {
+			    		alarmTimeTomorrow = alarmTime;
+			    	}
+				}
+			}
+		}
+		if(alarmTimeToday!=null) {
+			log.fine("earliest alarm for today is set for "+alarmTimeToday);
+			textWatchpanel.setOptionText(" heute "+alarmTimeToday.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
+			
+			return;
+		}
+		else {
+			log.fine("No alarm found for today");
+			
+			if(alarmTimeTomorrow!=null) {
+				log.fine("earliest alarm for tomorrow is set for "+alarmTimeTomorrow);
+				textWatchpanel.setOptionText(" morgen "+alarmTimeTomorrow.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
+				
+				return;
+			}
+		}
+		
+		log.fine("No alarm found for today or tomorrow");
+		textWatchpanel.setOptionText(null,null);
 	}
 	
 	
@@ -112,67 +182,8 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 
 		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null); 
 		if(alarmListTopic!=null && topic.equals(alarmListTopic)) {
-			log.fine("parsing alarm data");
-			
-			JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(message.toString()));
-			JsonObject jsonObject = reader.readObject();
-			
-			JsonArray alarmList = jsonObject.getJsonArray("alarms");
-			
-			// search for alarm scheduled for today or tomorrow
-			LocalTime alarmTimeToday    = null;
-			LocalTime alarmTimeTomorrow = null;
-			String weekDayToday    = LocalDate.now().getDayOfWeek().toString();
-			String weekDayTomorrow = LocalDate.now().plusDays(1).getDayOfWeek().toString();
-			
-			for(int i=0 ; i<alarmList.size() ; i++) {
-				JsonObject alarm = alarmList.getJsonObject(i);
-				boolean enabled  = alarm.getBoolean("enabled");
-				boolean skipOnce = alarm.getBoolean("skipOnce");
-				
-				if(enabled && !skipOnce) {
-					String alarmWeekDays = alarm.getJsonString("weekDays").toString();
-					log.fine("found active alarm with weekDays: "+alarmWeekDays);
-					
-					if(alarmWeekDays.contains(weekDayToday)) {
-				    	String alarmTimeString = alarm.getString("time");
-				    	log.fine("found active alarm for today with time="+alarmTimeString);
-				    	
-				    	LocalTime alarmTime = LocalTime.parse(alarmTimeString, DateTimeFormatter.ofPattern("HH:mm"));
-				    	if(alarmTime.isAfter(LocalTime.now()) && (alarmTimeToday==null || alarmTime.isBefore(alarmTimeToday))) {
-				    		alarmTimeToday = alarmTime;
-				    	}
-					}
-					if(alarmWeekDays.contains(weekDayTomorrow)) {
-				    	String alarmTimeString = alarm.getString("time");
-				    	log.fine("found active alarm for tomorrow with time="+alarmTimeString);
-				    	
-				    	LocalTime alarmTime = LocalTime.parse(alarmTimeString, DateTimeFormatter.ofPattern("HH:mm"));
-				    	if(alarmTimeTomorrow==null || alarmTime.isBefore(alarmTimeTomorrow)) {
-				    		alarmTimeTomorrow = alarmTime;
-				    	}
-					}
-				}
-			}
-			if(alarmTimeToday!=null) {
-				log.fine("earliest alarm for today is set for "+alarmTimeToday);
-				textWatchpanel.setOptionText(" heute "+alarmTimeToday.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
-				
-				return;
-			}
-			else {
-				log.fine("No alarm found for today");
-				
-				if(alarmTimeTomorrow!=null) {
-					log.fine("earliest alarm for tomorrow is set for "+alarmTimeTomorrow);
-					textWatchpanel.setOptionText(" morgen "+alarmTimeTomorrow.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
-					
-					return;
-				}
-			}
-			
-			log.fine("No alarm found for today or tomorrow");
-			textWatchpanel.setOptionText(null,null);
+			alarmListString = message.toString();
+			alarmListUpdated.set(true);
 		}
 	}
 
@@ -218,5 +229,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 	private final   DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("d. MMM yyyy");
 	private         LocalDate         lastDate = null;
 	private         boolean           displayAlarm = false;     //
+	private         AtomicBoolean     alarmListUpdated = new AtomicBoolean(false);
+	private         String            alarmListString;  
 	private         ImageIcon         alarmClockIcon;
 }

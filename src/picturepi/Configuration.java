@@ -269,27 +269,29 @@ class Configuration {
 		buttonViewList = new LinkedList<ButtonClickViewData>();
 		
 		Ini.Section buttons= iniFile.get("buttons");
-		for(Map.Entry<String,String> entry: buttons.entrySet() ) {
-			String key = entry.getKey();
-			log.config("found view: "+key+" maps to button "+entry.getValue());
-			// check if view name contains optional ID string for view creation
-			String id       = null;
-			String viewName = key;
-			int startPos = key.indexOf('[');
-			if(startPos>0) {
-				int endPos = key.indexOf(']');
-				if(endPos>0 && endPos>startPos) {
-					log.fine("view name contains optional ID");
-					id = key.substring(startPos+1, endPos);
-					viewName = key.substring(0, startPos);
-					log.fine("final view name="+viewName+" id="+id);
+		if(buttons!=null) {
+			for(Map.Entry<String,String> entry: buttons.entrySet() ) {
+				String key = entry.getKey();
+				log.config("found view: "+key+" maps to button "+entry.getValue());
+				// check if view name contains optional ID string for view creation
+				String id       = null;
+				String viewName = key;
+				int startPos = key.indexOf('[');
+				if(startPos>0) {
+					int endPos = key.indexOf(']');
+					if(endPos>0 && endPos>startPos) {
+						log.fine("view name contains optional ID");
+						id = key.substring(startPos+1, endPos);
+						viewName = key.substring(0, startPos);
+						log.fine("final view name="+viewName+" id="+id);
+					}
 				}
-			}
-			ButtonClickViewData buttonClickViewData = Configuration.getConfiguration().parseButtonClickViewData(entry.getValue());
-			if(buttonClickViewData!=null) {
-				buttonClickViewData.viewName = viewName;
-				buttonClickViewData.id = id;
-				buttonViewList.add(buttonClickViewData);
+				ButtonClickViewData buttonClickViewData = Configuration.getConfiguration().parseButtonClickViewData(entry.getValue());
+				if(buttonClickViewData!=null) {
+					buttonClickViewData.viewName = viewName;
+					buttonClickViewData.id = id;
+					buttonViewList.add(buttonClickViewData);
+				}
 			}
 		}
 	}

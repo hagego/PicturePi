@@ -141,6 +141,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 			log.config("Display is projector. Initializing GPIO pins for projector control");
 			gpioProjectorPower = gpioController.provisionDigitalOutputPin(RaspiPin.GPIO_02);
 			screenType = ScreenType.PROJECTOR;
+			log.fine("Provisioning done");
 		}
 		else {
 			gpioProjectorPower     = null;
@@ -546,6 +547,8 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 	}
 	
 	private synchronized void enableDisplay(boolean enable) {
+		log.finest("enableDisplay called with parameter: "+enable);
+		
 		if(enable==displayEnabled) {
 			// do nothing
 			return;
