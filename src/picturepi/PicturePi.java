@@ -165,7 +165,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 			// enable motion detection thru local GPIO
 			log.config("motion detection thru GPIO: "+motionDetectionGpio);
 			
-			gpioInPIRSensor = gpioController.provisionDigitalInputPin (RaspiPin.getPinByAddress(motionDetectionGpio), PinPullResistance.OFF);
+			gpioInPIRSensor = gpioController.provisionDigitalInputPin (RaspiPin.getPinByAddress(motionDetectionGpio), PinPullResistance.PULL_DOWN);
 			
 			// handle PIR motion sensor changes
 			if(gpioInPIRSensor.isHigh()) {
@@ -329,6 +329,8 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 					if(motionDetectedPanel==null && viewData.panel.getClass().getName().equals("picturepi."+motionDetectedPanelName)) {
 						log.fine("motion detected panel already exists in scheduler");
 						motionDetectedPanel = viewData.panel;
+						
+						break;
 					}
 				}
 			}
@@ -384,7 +386,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 						nextView = viewIterator.next();
 						
 						// ensure that providers of inactive views are stopped
-						if(!nextView.isActive() && nextView.panel!=null && nextView.panel.isActive()) {
+						if(!nextView.isActive() && nextView.panel!=null && nextView.panel.isActive() && nextView.panel!=motionDetectedPanel) {
 							log.fine("de-activating view "+nextView.name);
 							nextView.panel.setActive(false);
 						}
@@ -427,8 +429,14 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 						// no active view found. Sleep a minute and try again
 						log.fine("no active view found");
 						if(scheduledViewActive) {
+							// disable display
 							enableDisplay(false);
 							scheduledViewActive = false;
+						}
+						if(screenType==ScreenType.PROJECTOR) {
+							// on projector, activate motion detected panel (but don't enable display yet)
+							motionDetectedPanel.setActive(true);
+							mainWindow.setPanel(motionDetectedPanel);
 						}
 					}
 					lastView = nextView;
@@ -486,10 +494,13 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		}
 		
 		if(bus==null) {
+			int i2cbus = 0;
 			try {
-				bus = I2CFactory.getInstance(I2CBus.BUS_3);
+				i2cbus = Configuration.getConfiguration().getValue("global","i2cbus",I2CBus.BUS_3);
+				bus = I2CFactory.getInstance(i2cbus);
+				log.config("Successfully detected i2c bus "+i2cbus );
 			} catch (UnsupportedBusNumberException | IOException e) {
-				log.severe("Unable to get I2C Factory: "+e.getMessage());
+				log.severe("Unable to get I2C Factory for i2cbus  "+i2cbus);
 			}
 		}
 		
@@ -506,8 +517,11 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 				int brightness = bytes[0]*256+bytes[1];
 				log.fine("brightness read from sensor: HB="+bytes[0]+" LB="+bytes[1]+" brighntess="+brightness);
 				
-				// start with a simple quadratic relation
-				brightness *= brightness;
+				// start with a simple quadratic relation for bright situations and go linear when it gets darker
+				if(brightness>=5) {
+					brightness *= brightness;
+				}
+				
 				brightness = Integer.min(brightness, 255);
 				brightness = Integer.max(brightness, 1);
 				
@@ -559,10 +573,13 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		// code for DSP2000 projector
 		if(Configuration.getConfiguration().isRunningOnRaspberry() && screenType==ScreenType.PROJECTOR) {
 			if(bus==null) {
+				int i2cbus = 0;
 				try {
-					bus = I2CFactory.getInstance(I2CBus.BUS_3);
+					i2cbus = Configuration.getConfiguration().getValue("global","i2cbus",I2CBus.BUS_3);
+					bus = I2CFactory.getInstance(i2cbus);
+					log.config("Successfully detected i2c bus "+i2cbus );
 				} catch (UnsupportedBusNumberException | IOException e) {
-					log.severe("Unable to get I2C Factory: "+e.getMessage());
+					log.severe("Unable to get I2C Factory for i2cbus  "+i2cbus);
 				}
 			}
 			
