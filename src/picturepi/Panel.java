@@ -108,6 +108,18 @@ public abstract class Panel extends JPanel {
 	}
 	
 	/**
+	 * returns if the associated view shall be displayed right now even if it is outside of the scheduled time intervals
+	 * default is false, can be overridden by derived classes
+	 * @return true/false if associated view shall be displayed right now even if it is outside of the scheduled time intervals
+	 */
+	boolean showViewDynamic() {
+		if(provider!=null) {
+			return provider.showViewDynamic();
+		}
+		return false;
+	}
+	
+	/**
 	 * sets a dark foreground color
 	 */
 	abstract void setColorDark();

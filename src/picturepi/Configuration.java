@@ -58,10 +58,11 @@ class Configuration {
 	 * @return if we are running on Raspberry or not
 	 */
 	boolean isRunningOnRaspberry() {
-		boolean runningOnRaspberry = true;
+		boolean runningOnRaspberry = false;
 		
-		if(System.getProperty("os.name").toLowerCase(Locale.ENGLISH).startsWith("windows")) {
-			runningOnRaspberry = false;
+		if(System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("linux")
+				&& System.getProperty("os.arch").toLowerCase(Locale.ENGLISH).contains("arm")) {
+			runningOnRaspberry = true;
 		}
 		
 		return runningOnRaspberry;
@@ -155,6 +156,7 @@ class Configuration {
 		LocalTime start,end;
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm");
 		List<ViewData> viewList  = new LinkedList<ViewData>();
+		boolean isDynamic = false;
 		
 		if(pos!=-1) {
 			try {
@@ -162,25 +164,41 @@ class Configuration {
 				while(pos!=-1) {
 					int endPos = data.indexOf(',',pos+1);
 					String displayInterval = endPos>=0 ? data.substring(pos+1,endPos) : data.substring(pos+1);
-					pos = displayInterval.indexOf('-');
-					if(pos!=-1) {
-						start = LocalTime.parse(displayInterval.substring(0, pos),format);
-						end   = LocalTime.parse(displayInterval.substring(pos+1),format);
-						
-						log.fine("parsed view data: duration="+duration+" start="+start+" end="+end);
-						
-						ViewData viewData = new ViewData();
-						viewData.name         = null;
-						viewData.duration     = duration;
-						viewData.displayStart = start;
-						viewData.displayEnd   = end;
-						viewData.panel        = null;
-						
-						viewList.add(viewData);
-						pos = data.indexOf(pos+1,',');
+					
+					// first check for true/false, controlling the dynamic behavior
+					if(displayInterval.toLowerCase().contains("true")) {
+						log.fine("view is dynamic");
+						isDynamic = true;
+					}
+					else {
+						pos = displayInterval.indexOf('-');
+						if(pos!=-1) {
+							start = LocalTime.parse(displayInterval.substring(0, pos),format);
+							end   = LocalTime.parse(displayInterval.substring(pos+1),format);
+							
+							log.fine("parsed view data: duration="+duration+" start="+start+" end="+end);
+							
+							ViewData viewData = new ViewData();
+							viewData.name         = null;
+							viewData.duration     = duration;
+							viewData.displayStart = start;
+							viewData.displayEnd   = end;
+							viewData.panel        = null;
+							viewData.allowDynamic    = false;
+							
+							viewList.add(viewData);
+							
+							pos = data.indexOf(pos+1,',');
+						}
 					}
 					pos = endPos;
 				}
+				
+				// store the isDynamic flag in all ViewData objects
+				for(ViewData viewData:viewList) {
+					viewData.allowDynamic = isDynamic;
+				}
+				
 				return viewList;
 			}
 			catch(NumberFormatException | DateTimeParseException  e) {
@@ -319,14 +337,15 @@ class Configuration {
 	// nested class for view data
 	//
 	class ViewData {
-		public String    name;                // view name
-		public int       duration;            // display duration in seconds
-		public LocalTime displayStart;        // start to display at
-		public LocalTime displayEnd;          // end to display at
-		public Panel     panel;               // Panel object
+		public String    name;                 // view name
+		public int       duration;             // display duration in seconds
+		public LocalTime displayStart;         // start to display at
+		public LocalTime displayEnd;           // end to display at
+		public Panel     panel;                // Panel object
+		public boolean   allowDynamic = false; // if true, this view can get enabled any time by the scheduler
 		
 		public boolean isActive() {
-			return LocalTime.now().isAfter(displayStart) && LocalTime.now().isBefore(displayEnd);
+			return (allowDynamic && panel!=null && panel.showViewDynamic()) || LocalTime.now().isAfter(displayStart) && LocalTime.now().isBefore(displayEnd);
 		}
 	}
 	

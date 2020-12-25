@@ -24,6 +24,13 @@ public abstract class Provider implements Runnable {
 		this.panel = panel;
 	}
 	
+	/**
+	 * gets called after all panels and provides got instantiated
+	 * can be overridden to do additional initialization work
+	 */
+	void init() {
+	}
+	
 	
 	/**
 	 * starts the provider thread
@@ -85,6 +92,15 @@ public abstract class Provider implements Runnable {
 	 */
 	protected void setSleepTime(int sleepTimeSeconds) {
 		this.sleepTimeSeconds = sleepTimeSeconds;
+	}
+	
+	/**
+	 * returns if the associated view shall be displayed right now even if it is outside of the scheduled time intervals
+	 * default is false, can be overridden by derived classes
+	 * @return true/false if associated view shall be displayed right now even if it is outside of the scheduled time intervals
+	 */
+	boolean showViewDynamic() {
+		return false;
 	}
 	
 	/*

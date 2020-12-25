@@ -9,7 +9,7 @@ picturepi.level=ALL
 #
 # console logger
 #
-java.util.logging.ConsoleHandler.level=ALL
+java.util.logging.ConsoleHandler.level=FINE
 java.util.logging.ConsoleHandler.formatter=picturepi.OneLineFormatter
 
 

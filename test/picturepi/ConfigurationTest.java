@@ -3,10 +3,14 @@ package picturepi;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+
+import picturepi.Configuration.ViewData;
 
 class ConfigurationTest {
 	
@@ -24,7 +28,7 @@ class ConfigurationTest {
 	@Test
 	@EnabledOnOs({OS.LINUX})
 	void testOnLinuxIsRunningOnRaspberry() {
-		assertThat(Configuration.getConfiguration().isRunningOnRaspberry(),is(true));
+		assertThat(Configuration.getConfiguration().isRunningOnRaspberry(),is(false));
 	}
 	
 	@Test
@@ -85,7 +89,16 @@ class ConfigurationTest {
 	
 	@Test
 	void testParsingViewDataTwoSlots() {
-		assertThat(Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40"), hasSize(2));
+		List<ViewData> list = Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40");
+		assertThat(list.get(0).allowDynamic,is(false));
+		assertThat(list, hasSize(2));
+	}
+	
+	@Test
+	void testParsingViewDataTwoSlotsAllowDynamic() {
+		List<ViewData> list = Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40,true");
+		assertThat(list.get(0).allowDynamic,is(true));
+		assertThat(list, hasSize(2));
 	}
 	
 	@Test

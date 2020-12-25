@@ -24,6 +24,8 @@ class WeatherPanel extends Panel {
 	public WeatherPanel() {
 		super(new WeatherProvider());
 		
+		log.fine("creating WeatherPanel");
+		
 		int fontSizeText        = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeText", 32);
 		int fontSizeTemperature = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeTemperature", 60);
 		

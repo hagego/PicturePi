@@ -4,7 +4,9 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -15,6 +17,7 @@ import javax.swing.ImageIcon;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import picturepi.Configuration.ViewData;
 import tk.plogitech.darksky.forecast.APIKey;
 import tk.plogitech.darksky.forecast.DarkSkyClient;
 import tk.plogitech.darksky.forecast.ForecastException;
@@ -34,6 +37,7 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 	WeatherProvider() {
 		// update data every hour
 		super(3600);
+		log.fine("creating WeatherProvider");
 		
 		// subscribe to MQTT topics to retrieve measured temperature updates
 		mqttTopicTemperature = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), mqttTopicTemperatureConfigKey, null);
@@ -45,6 +49,21 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 		if(mqttTopicTemperatureMin != null) {
 			log.info("subscribing for min temperature");
 			MqttClient.getMqttClient().subscribe(mqttTopicTemperatureMin, this);
+		}
+		
+		log.fine("WeatherProvider created");
+	}
+	
+	@Override
+	void init() {
+		String followDynamicViewName = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), "followDynamicView", null);
+		if(followDynamicViewName!=null) {
+			log.fine("looking for view to follow with showDynamic: "+followDynamicViewName);
+			List<ViewData> followViewDataList = Configuration.getConfiguration().getViewDataList().stream().filter(viewData -> viewData.name.equals(followDynamicViewName)).collect(Collectors.toList());
+			if(followViewDataList.size()>0) {
+				log.fine("found provider to follow view with showDynamic: "+followDynamicViewName);
+				followViewProvider = followViewDataList.get(0).panel.provider;
+			}
 		}
 	}
 
@@ -123,6 +142,15 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 	}
 	
 	@Override
+	boolean showViewDynamic() {
+		if(followViewProvider!=null) {
+			return followViewProvider.showViewDynamic();
+		}
+		
+		return super.showViewDynamic();
+	}
+	
+	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		log.fine("MQTT message arrived: topic="+topic+" content="+message);
 
@@ -156,5 +184,5 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 	private       String            mqttTopicTemperatureMin;
 	
 	private       WeatherPanel      weatherPanel                  = null;    // WeatherPanel to update
-
+	private       Provider          followViewProvider            = null;    // optional, other provider used to decide for showDynamic
 }

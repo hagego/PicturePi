@@ -68,7 +68,7 @@ public class MainWindow implements Runnable {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				log.fine("setting panel "+panel.getClass().toString());
+				log.finest("setting panel "+panel.getClass().toString());
 				mainFrame.getContentPane().removeAll();
 				mainFrame.getContentPane().add(panel);
 				mainFrame.setVisible(true);

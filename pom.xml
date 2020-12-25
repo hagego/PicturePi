@@ -8,6 +8,7 @@
     <project.reporting.outputEncoding>Cp1252</project.reporting.outputEncoding>
 </properties>
   <build>
+  <finalName>picturepi</finalName>
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
     <resources>

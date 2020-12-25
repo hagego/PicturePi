@@ -1,6 +1,7 @@
 package picturepi;
 
 import java.awt.EventQueue;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -49,16 +50,23 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 	public static void main(String[] args) {
 		
 		// read logging configuration file.
-		String configDir = "";
-		if(Configuration.getConfiguration().isRunningOnRaspberry() == false) {
-			// on windows development, expect configuration data in conf directory of project
-			configDir = "conf/";
-			log.info("PicturePi started, running on Windows");
+		// first check for a local conf directory (as it exists in the development environment)
+		String configDir = "conf/";
+		File confDir = new File(configDir);
+		if( confDir.exists() && confDir.isDirectory()) {
+			log.info("Found local conf directory. Will use this for configuration files");
 		}
 		else {
-			// on Linux/Raspberry, expect configuration data in /etc/picturepi
 			configDir = "/etc/picturepi/";
-			log.info("PicturePi started, running on Linux/Rasperry");
+			confDir = new File(configDir);
+			if( confDir.exists() && confDir.isDirectory()) {
+				log.info("Found conf directory "+configDir+". Will use this for configuration files");
+			}
+			else {
+				log.severe("Unable to find a valid configuration directory. Exiting...");
+				
+				return;
+			}
 		}
 		
 		// force reading of logger / handler configuration file
@@ -255,6 +263,19 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 				viewData.panel = viewName2panelMap.get(viewData.name);
 			}
 		}
+		
+		// call init() on all providers
+		log.config("calling init() for all providers");
+		Configuration.getConfiguration().getViewDataList().stream().forEach(viewData -> {
+			Panel panel = viewData.panel;
+			if(panel!=null) {
+				Provider provider = panel.provider;
+				if(provider!=null) {
+					log.fine("calling init for provider of view="+viewData.name);
+					provider.init();
+				}
+			}
+		});
 	}
 	
 	/**
@@ -264,50 +285,52 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		log.config("Creating bluetooth button 2 panel map from config file");
 		
 		// read flicd bluetooth button 2 panel mapping and create panel objects
-		log.config("creating panel objects for flicd buttons");
 		buttonPanelList = Configuration.getConfiguration().getButtonViewList();
-		
-		for(Configuration.ButtonClickViewData buttonViewData : buttonPanelList) {
-			buttonViewData.panel = Panel.createPanelFromName(buttonViewData.viewName,buttonViewData.id);
-		}
-		
-		// start connection to flicd
-	    try {
-	    	log.info("creating connection to flicd");
-			FlicClient flicCLient = new FlicClient("127.0.0.1");
+		if(buttonPanelList.size()>0) {
+			log.config("creating panel objects for flicd buttons");
 			
-			// register all buttons found in configuration file
-			// buttons might exist multiple times in the list, register each only one
-			Set<String> baddrStringSet = new HashSet<String>();
-			for(Configuration.ButtonClickViewData buttonViewData:buttonPanelList) {
-				if(!baddrStringSet.contains(buttonViewData.buttonAddress)) {
-					baddrStringSet.add(buttonViewData.buttonAddress);
-					
-					log.fine("registering bluetooth button "+buttonViewData.buttonAddress);
-					ButtonConnectionChannel button = new ButtonConnectionChannel(new Bdaddr(buttonViewData.buttonAddress), LatencyMode.NormalLatency, (short)5, this);
-					flicCLient.addConnectionChannel(button);
-				}
+			for(Configuration.ButtonClickViewData buttonViewData : buttonPanelList) {
+				buttonViewData.panel = Panel.createPanelFromName(buttonViewData.viewName,buttonViewData.id);
 			}
 			
-			
-			
-			log.info("entering flic event loop");
-			
-			Thread t = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						flicCLient.handleEvents();
-					} catch (IOException e) {
-						log.severe("Exception during flic event loop");
-						log.severe(e.getMessage());
+			// start connection to flicd
+		    try {
+		    	log.info("creating connection to flicd");
+				FlicClient flicCLient = new FlicClient("127.0.0.1");
+				
+				// register all buttons found in configuration file
+				// buttons might exist multiple times in the list, register each only one
+				Set<String> baddrStringSet = new HashSet<String>();
+				for(Configuration.ButtonClickViewData buttonViewData:buttonPanelList) {
+					if(!baddrStringSet.contains(buttonViewData.buttonAddress)) {
+						baddrStringSet.add(buttonViewData.buttonAddress);
+						
+						log.fine("registering bluetooth button "+buttonViewData.buttonAddress);
+						ButtonConnectionChannel button = new ButtonConnectionChannel(new Bdaddr(buttonViewData.buttonAddress), LatencyMode.NormalLatency, (short)5, this);
+						flicCLient.addConnectionChannel(button);
 					}
-				};
-			});
-			t.start();
-		} catch (IOException e) {
-			log.severe("Unable to connect to flicd");
-			log.severe(e.getMessage());
+				}
+				
+				
+				
+				log.info("entering flic event loop");
+				
+				Thread t = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							flicCLient.handleEvents();
+						} catch (IOException e) {
+							log.severe("Exception during flic event loop");
+							log.severe(e.getMessage());
+						}
+					};
+				});
+				t.start();
+			} catch (IOException e) {
+				log.severe("Unable to connect to flicd");
+				log.severe(e.getMessage());
+			}
 		}
 	}
 	
@@ -420,14 +443,14 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 							}
 						}
 						
-						log.fine("activating view "+nextView.name);
+						log.finest("activating view "+nextView.name);
 						mainWindow.setPanel(nextView.panel);
 						
 						sleepTime = nextView.duration*1000;
 					}
 					else {
 						// no active view found. Sleep a minute and try again
-						log.fine("no active view found");
+						log.finest("no active view found");
 						if(scheduledViewActive) {
 							// disable display
 							enableDisplay(false);

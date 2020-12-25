@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import javax.json.Json;
@@ -104,11 +103,6 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 			textWatchpanel.setTimeText(msg1,msg2);
 			lastIndex = index;
 		}
-		
-		if(alarmListUpdated.get()==true) {
-			parseAlarmList(alarmListString);
-			alarmListUpdated.set(false);
-		}
 	}
 	
 	private void parseAlarmList(String alarmListString) {
@@ -120,7 +114,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		JsonArray alarmList = jsonObject.getJsonArray("alarms");
 		
 		// search for alarm scheduled for today or tomorrow
-		LocalTime alarmTimeToday    = null;
+		alarmTimeToday    = null;
 		LocalTime alarmTimeTomorrow = null;
 		String weekDayToday    = LocalDate.now().getDayOfWeek().toString();
 		String weekDayTomorrow = LocalDate.now().plusDays(1).getDayOfWeek().toString();
@@ -156,7 +150,9 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		}
 		if(alarmTimeToday!=null) {
 			log.fine("earliest alarm for today is set for "+alarmTimeToday);
-			textWatchpanel.setOptionText(" heute "+alarmTimeToday.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
+			if(textWatchpanel!=null) {
+				textWatchpanel.setOptionText(" heute "+alarmTimeToday.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
+			}
 			
 			return;
 		}
@@ -165,14 +161,18 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 			
 			if(alarmTimeTomorrow!=null) {
 				log.fine("earliest alarm for tomorrow is set for "+alarmTimeTomorrow);
-				textWatchpanel.setOptionText(" morgen "+alarmTimeTomorrow.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
+				if(textWatchpanel!=null) {
+					textWatchpanel.setOptionText(" morgen "+alarmTimeTomorrow.format(DateTimeFormatter.ofPattern("HH:mm")),alarmClockIcon);
+				}
 				
 				return;
 			}
 		}
 		
 		log.fine("No alarm found for today or tomorrow");
-		textWatchpanel.setOptionText(null,null);
+		if(textWatchpanel!=null) {
+			textWatchpanel.setOptionText(null,null);
+		}
 	}
 	
 	
@@ -182,9 +182,40 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 
 		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null); 
 		if(alarmListTopic!=null && topic.equals(alarmListTopic)) {
-			alarmListString = message.toString();
-			alarmListUpdated.set(true);
+			
+			// parse information in separate thread
+			new Thread(){
+			    public void run(){
+			      parseAlarmList(message.toString());
+			    }
+			  }.start();
 		}
+	}
+	
+	@Override
+	boolean showViewDynamic() {
+		// check if we are within +/- 30 minutes of an alarm and force display if needed
+		if(alarmTimeToday!=null) {
+			if( activateViewDynamically == false ) {
+				if( LocalTime.now().isAfter(alarmTimeToday.minusMinutes(30)) ) {
+					log.fine("activating view dynamically");;
+					activateViewDynamically = true;
+					dynamicViewOffTime      = alarmTimeToday.plusMinutes(30);
+				}
+			}
+		}
+		
+		if(dynamicViewOffTime!=null) {
+			if( LocalTime.now().isAfter(dynamicViewOffTime) ) {
+				log.fine("deactivating view dynamically");;
+				
+				activateViewDynamically = false;
+				dynamicViewOffTime      = null;
+				alarmTimeToday          = null;
+			}
+		}
+		
+		return activateViewDynamically;
 	}
 
 	//
@@ -223,13 +254,14 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
             "bis %next", //$NON-NLS-1$
             "%next" }; //$NON-NLS-1$
 
-	private         TextWatchPanel    textWatchpanel = null;    // TextWatchPanel to update
-	private         int               lastIndex = -1;           // stores index of last message displayed
+	private         TextWatchPanel    textWatchpanel = null;     // TextWatchPanel to update
+	private         int               lastIndex = -1;            // stores index of last message displayed
+	private	        LocalTime         alarmTimeToday = null;     // stores alarm time for the current day (or null)
+	private	        LocalTime         dynamicViewOffTime = null; // time when dynamic view must be switched off again
+	private         boolean           activateViewDynamically = false;
 	private final   DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 	private final   DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("d. MMM yyyy");
 	private         LocalDate         lastDate = null;
 	private         boolean           displayAlarm = false;     //
-	private         AtomicBoolean     alarmListUpdated = new AtomicBoolean(false);
-	private         String            alarmListString;  
 	private         ImageIcon         alarmClockIcon;
 }
