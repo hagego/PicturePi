@@ -119,8 +119,8 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		Thread t = new Thread(picturePi);
 		picturePi.setSchedulerThread(t);
 		t.start();
-		
 	}
+	
 
 	/**
 	 * private constructor
@@ -364,21 +364,18 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 
 			if(motionDetectedPanel!=null) {
 				log.fine("successfully created motion deteced panel "+motionDetectedPanelName);
+				
+				Configuration.ViewData viewData = new ViewData();
+				viewData.name = "motion detection view";
+				viewData.panel = motionDetectedPanel;
+				motionDetectedPanel.addActiveView(viewData);
 			}
 		}
 		else {
-			log.warning("No panel specified for motion detected");
+			log.warning("No panel specified to active when motion is detected");
 		}
 
-		// set panels active to start provider threads
-		log.config("starting provider threads on active views");
-		Configuration.getConfiguration().getViewDataList()
-			.stream()
-			.filter(viewData -> viewData.isActive())
-			.filter(viewData -> viewData.panel!=null)
-			.forEach(viewData -> viewData.panel.setActive(true));
-				
-		List<ViewData> viewDataList = Configuration.getConfiguration().getViewDataList();
+		List<ViewData> viewDataList     = Configuration.getConfiguration().getViewDataList();
 		Iterator<ViewData> viewIterator = viewDataList.iterator();
 		
 		ViewData lastView = viewIterator.next();
@@ -408,22 +405,16 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 						}
 						nextView = viewIterator.next();
 						
-						// ensure that providers of inactive views are stopped
-						if(!nextView.isActive() && nextView.panel!=null && nextView.panel.isActive() && nextView.panel!=motionDetectedPanel) {
-							log.fine("de-activating view "+nextView.name);
-							nextView.panel.setActive(false);
+						if(nextView.isScheduled()) {
+							nextView.panel.addActiveView(nextView);
 						}
-						
-						// ensure that providers get started if view just gets active again
-						if(nextView.isActive() && nextView.panel!=null && !nextView.panel.isActive()) {
-							// panel just got activated again. re-start provider.
-							log.fine("re-activating view "+nextView.name);
-							nextView.panel.setActive(true);
+						else {
+							nextView.panel.removeActiveView(nextView);
 						}
 					}
-					while ((nextView.panel==null || !nextView.isActive() || !nextView.panel.hasData()) && nextView != lastView);
+					while ((nextView.isScheduled()==false || nextView.panel.hasData()==false) && nextView != lastView);
 					
-					if(nextView.isActive() && nextView.panel!=null && nextView.panel.hasData()) {
+					if(nextView.isScheduled() && nextView.panel.hasData()) {
 						// active view found that has data to display or is not active yet
 						// (if panel is not active, provider is not started so it cannot have data)
 						
@@ -458,7 +449,6 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 						}
 						if(screenType==ScreenType.PROJECTOR) {
 							// on projector, activate motion detected panel (but don't enable display yet)
-							motionDetectedPanel.setActive(true);
 							mainWindow.setPanel(motionDetectedPanel);
 						}
 					}
@@ -487,8 +477,6 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 						
 						if(screenType==ScreenType.PROJECTOR) {
 							if(!scheduledViewActive) {
-								// disable motion detected panel again
-								motionDetectedPanel.setActive(false);
 								enableDisplay(false);
 							}
 						}
@@ -709,7 +697,6 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		if(!scheduledViewActive) {
 			// no scheduled view active. Activate special panel for motion detected case
 			if(motionDetectedPanel != null) {
-				motionDetectedPanel.setActive(true);
 				mainWindow.setPanel(motionDetectedPanel);
 				
 				// enable projector

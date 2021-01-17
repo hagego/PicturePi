@@ -90,14 +90,14 @@ class ConfigurationTest {
 	@Test
 	void testParsingViewDataTwoSlots() {
 		List<ViewData> list = Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40");
-		assertThat(list.get(0).allowDynamic,is(false));
+		assertThat(list.get(0).allowOutOfSchedule,is(false));
 		assertThat(list, hasSize(2));
 	}
 	
 	@Test
 	void testParsingViewDataTwoSlotsAllowDynamic() {
 		List<ViewData> list = Configuration.getConfiguration().parseViewData("5,06:00-09:00,20:00-21:40,true");
-		assertThat(list.get(0).allowDynamic,is(true));
+		assertThat(list.get(0).allowOutOfSchedule,is(true));
 		assertThat(list, hasSize(2));
 	}
 	

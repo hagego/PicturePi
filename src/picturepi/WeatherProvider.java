@@ -142,12 +142,12 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 	}
 	
 	@Override
-	boolean showViewDynamic() {
+	boolean hasOutsideScheduleData() {
 		if(followViewProvider!=null) {
-			return followViewProvider.showViewDynamic();
+			return followViewProvider.hasOutsideScheduleData();
 		}
 		
-		return super.showViewDynamic();
+		return super.hasOutsideScheduleData();
 	}
 	
 	@Override

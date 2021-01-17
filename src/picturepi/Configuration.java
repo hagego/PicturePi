@@ -184,7 +184,7 @@ class Configuration {
 							viewData.displayStart = start;
 							viewData.displayEnd   = end;
 							viewData.panel        = null;
-							viewData.allowDynamic    = false;
+							viewData.allowOutOfSchedule    = false;
 							
 							viewList.add(viewData);
 							
@@ -196,7 +196,7 @@ class Configuration {
 				
 				// store the isDynamic flag in all ViewData objects
 				for(ViewData viewData:viewList) {
-					viewData.allowDynamic = isDynamic;
+					viewData.allowOutOfSchedule = isDynamic;
 				}
 				
 				return viewList;
@@ -270,8 +270,16 @@ class Configuration {
 			// parse view settings
 			List<ViewData> viewDataTmpList = parseViewData(entry.getValue());
 			if(viewDataTmpList != null) {
+				Integer index = null;
+				if(viewDataTmpList.size()>1) {
+					index = 1;
+				}
 				for(ViewData viewData:viewDataTmpList) {
 					viewData.name = entry.getKey();
+					if(index!=null) {
+						viewData.index = index;
+						index++;
+					}
 				}
 				viewDataList.addAll(viewDataTmpList);
 			}
@@ -336,17 +344,20 @@ class Configuration {
 	//
 	// nested class for view data
 	//
-	class ViewData {
+	static class ViewData {
 		public String    name;                 // view name
+		public Integer   index;                // index starting at 0 if view is scheduled multiple times, otherwise 0
 		public int       duration;             // display duration in seconds
 		public LocalTime displayStart;         // start to display at
 		public LocalTime displayEnd;           // end to display at
 		public Panel     panel;                // Panel object
-		public boolean   allowDynamic = false; // if true, this view can get enabled any time by the scheduler
+		public boolean   allowOutOfSchedule = false; // if true, this view can get enabled any time by the scheduler
 		
-		public boolean isActive() {
-			return (allowDynamic && panel!=null && panel.showViewDynamic()) || LocalTime.now().isAfter(displayStart) && LocalTime.now().isBefore(displayEnd);
+		public boolean isScheduled() {
+			return LocalTime.now().isAfter(displayStart) && LocalTime.now().isBefore(displayEnd);
 		}
+		
+		ViewData() {};
 	}
 	
 	//
@@ -354,7 +365,7 @@ class Configuration {
 	//
 	class ButtonClickViewData {
 		public String   viewName;       // view name
-		public String   buttonAddress;  // bluetooth address
+		public String   buttonAddress;  // bluetooth button address
 		public int      duration;       // display duration in seconds after button click
 		public int      clicks;         // click count: 1=single click, 2=double click
 		public String   id;             // optional ID string that will be passed thru to the panel

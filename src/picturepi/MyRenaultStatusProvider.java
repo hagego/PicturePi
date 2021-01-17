@@ -141,13 +141,12 @@ public class MyRenaultStatusProvider extends Provider {
 			    os.write(input, 0, input.length);           
 			}
 			
-			BufferedReader br = new BufferedReader(
-			  new InputStreamReader(con.getInputStream(), "utf-8"));
-			    StringBuilder response = new StringBuilder();
-			    String responseLine = null;
-			    while ((responseLine = br.readLine()) != null) {
-			        response.append(responseLine.trim());
-			    }
+			BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"));
+		    StringBuilder response = new StringBuilder();
+		    String responseLine = null;
+		    while ((responseLine = br.readLine()) != null) {
+		        response.append(responseLine.trim());
+		    }
 			JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(response.toString()));
 			JsonObject jsonObject    = reader.readObject();
 			

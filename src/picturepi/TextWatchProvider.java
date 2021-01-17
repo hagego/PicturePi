@@ -193,7 +193,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 	}
 	
 	@Override
-	boolean showViewDynamic() {
+	boolean hasOutsideScheduleData() {
 		// check if we are within +/- 30 minutes of an alarm and force display if needed
 		if(alarmTimeToday!=null) {
 			if( activateViewDynamically == false ) {

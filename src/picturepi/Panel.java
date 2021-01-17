@@ -1,6 +1,8 @@
 package picturepi;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.swing.JPanel;
@@ -13,10 +15,12 @@ public abstract class Panel extends JPanel {
 	/**
 	 * constructor
 	 */
-	Panel(Provider provider) {
+	protected Panel(Provider provider) {
 		super();
 		
 		this.provider = provider;
+		activeViews   = new HashSet<>();
+		
 		provider.setPanel(this);
 	}
 	
@@ -64,34 +68,42 @@ public abstract class Panel extends JPanel {
 		return panel;
 	}
 	
+
 	/**
-	 * sets the panel as active or inactive
-	 * active means the panel can be displayed now and the data provider is started, but not necessarily that it
-	 * is currently being displayed
-	 * @param isActive
+	 * adds an active view for this panel. If this is the first active view, the data provider gets started
+	 * @param viewData view which was activated
 	 */
-	void setActive(boolean isActive) {
-		if(provider!=null) {
-			if(isActive) {
+	void addActiveView(Configuration.ViewData viewData) {
+		log.finest("Adding active view: "+viewData.name+(viewData.index!=null ? "-"+viewData.index : ""));
+		
+		if(activeViews.isEmpty()) {
+			// first active view - start data provider
+			log.fine("first active view added for panel: "+viewData.name);
+			if(provider!=null) {
 				provider.start();
-				this.isActive = true;
-			}
-			else {
-				provider.stop();
-				this.isActive = false;
 			}
 		}
+		activeViews.add(viewData);
 	}
 	
-	
 	/**
-	 * returns if this panel is currently active or not
-	 * active means the panel can be displayed now, but not necessarily that it
-	 * is currently being displayed
-	 * @return returns if this panel is currently active or not
+	 * removes an active view from this panel. If this was the lsat active view, the data provider gets stopped
+	 * @param viewData view which was deactivated
 	 */
-	boolean isActive() {
-		return isActive;
+	void removeActiveView(Configuration.ViewData viewData) {
+		log.finest("Removing active view: "+viewData.name+(viewData.index!=null ? "-"+viewData.index : ""));
+		
+		if( activeViews.remove(viewData)==false ) {
+			log.finest("removeActiveView called, but view was not active: ");
+		}
+		else {
+			if(activeViews.isEmpty()) {
+				log.fine("Last active view removed - stopping provider: "+viewData.name);
+				if(provider!=null) {
+					provider.stop();
+				}
+			}
+		}
 	}
 	
 	/**
@@ -108,16 +120,12 @@ public abstract class Panel extends JPanel {
 	}
 	
 	/**
-	 * returns if the associated view shall be displayed right now even if it is outside of the scheduled time intervals
-	 * default is false, can be overridden by derived classes
-	 * @return true/false if associated view shall be displayed right now even if it is outside of the scheduled time intervals
+	 * @return the associated provider or null if no provider has been set (yet)
 	 */
-	boolean showViewDynamic() {
-		if(provider!=null) {
-			return provider.showViewDynamic();
-		}
-		return false;
+	Provider getProvider() {
+		return provider;
 	}
+	
 	
 	/**
 	 * sets a dark foreground color
@@ -140,7 +148,8 @@ public abstract class Panel extends JPanel {
 	private static final long    serialVersionUID = -3111174588868454448L;
 	private static final Logger  log = Logger.getLogger( Panel.class.getName() );
 	
-	protected Provider provider = null;         // data provider for this panel
+	protected Provider                    provider = null;   // data provider for this panel
+	private   Set<Configuration.ViewData> activeViews;       // set with currently active views for this panel
 	protected boolean  isActive = false;        // flags if this panel is currently active or not
 	
 	protected String   id       = null;         // optional, custom string ID that can be set in config file
