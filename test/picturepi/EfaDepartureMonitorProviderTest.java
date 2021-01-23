@@ -22,8 +22,8 @@ class EfaDepartureMonitorProviderTest {
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
-		Configuration.getConfiguration().readConfigurationFile("conf/picturepi.ini");
-		System.setProperty( "java.util.logging.config.file", "conf/picturepi.logging" );
+		Configuration.getConfiguration().readConfigurationFile("conf/picturepitest.ini");
+		System.setProperty( "java.util.logging.config.file", "conf/picturepitest.logging" );
 		
 		try {
 			LogManager.getLogManager().readConfiguration();

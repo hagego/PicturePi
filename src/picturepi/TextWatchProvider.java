@@ -33,7 +33,13 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null);
 		if(alarmListTopic != null) {
 			log.info("subscribing for alarmlist");
-			MqttClient.getMqttClient().subscribe(alarmListTopic, this);
+			MqttClient mqttClient = MqttClient.getMqttClient();
+			if(mqttClient!=null) {
+				mqttClient.subscribe(alarmListTopic, this);
+			}
+			else {
+				log.severe("Unable to create MQTT client");
+			}
 			
 			// prepare alarm clock icon
 		    try {

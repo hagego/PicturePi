@@ -21,7 +21,13 @@ public class PhoneFinderProvider extends Provider implements IMqttMessageListene
 		
 		// subscribe to MQTT messages from the specified phone
 		log.info("subscribing for MQTT topic "+mqttTopic);
-		MqttClient.getMqttClient().subscribe(mqttTopic, this);
+		MqttClient mqttClient = MqttClient.getMqttClient();
+		if(mqttClient!=null) {
+			mqttClient.subscribe(mqttTopic, this);
+		}
+		else {
+			log.severe("Unable to create MQTT client");
+		}
 		
 		log.fine("PhoneFinder provider created for phone ID "+phoneId);
 	}

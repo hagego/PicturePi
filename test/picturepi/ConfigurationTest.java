@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 import java.util.List;
+import java.util.logging.LogManager;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,16 @@ class ConfigurationTest {
 	
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
-		Configuration.getConfiguration().readConfigurationFile("conf/picturepi.ini");
+		Configuration.getConfiguration().readConfigurationFile("conf/picturepitest.ini");
+		System.setProperty( "java.util.logging.config.file", "conf/picturepitest.logging" );
+		
+		try {
+			LogManager.getLogManager().readConfiguration();
+		}
+		catch ( Exception e ) {
+			// unable to read logging configuration file
+			e.printStackTrace();
+		}
 	}
 
 	@Test
@@ -38,7 +48,7 @@ class ConfigurationTest {
 	
 	@Test
 	void testReadConfigurationFileDoesExist() {
-		assertThat(Configuration.getConfiguration().readConfigurationFile("conf/picturepi.ini"),is(true));
+		assertThat(Configuration.getConfiguration().readConfigurationFile("conf/picturepitest.ini"),is(true));
 	}
 	
 	@Test
