@@ -198,7 +198,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		if(alarmTimeToday!=null) {
 			if( activateViewDynamically == false ) {
 				if( LocalTime.now().isAfter(alarmTimeToday.minusMinutes(30)) ) {
-					log.fine("activating view dynamically");;
+					log.fine("activating view out of schedule");
 					activateViewDynamically = true;
 					dynamicViewOffTime      = alarmTimeToday.plusMinutes(30);
 				}
@@ -207,7 +207,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		
 		if(dynamicViewOffTime!=null) {
 			if( LocalTime.now().isAfter(dynamicViewOffTime) ) {
-				log.fine("deactivating view dynamically");;
+				log.fine("deactivating view out of schedule");
 				
 				activateViewDynamically = false;
 				dynamicViewOffTime      = null;

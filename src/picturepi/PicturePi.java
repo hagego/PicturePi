@@ -405,16 +405,16 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 						}
 						nextView = viewIterator.next();
 						
-						if(nextView.isScheduled()) {
+						if(nextView.showNow()) {
 							nextView.panel.addActiveView(nextView);
 						}
 						else {
 							nextView.panel.removeActiveView(nextView);
 						}
 					}
-					while ((nextView.isScheduled()==false || nextView.panel.hasData()==false) && nextView != lastView);
+					while ((nextView.showNow()==false || nextView.panel.hasData()==false) && nextView != lastView);
 					
-					if(nextView.isScheduled() && nextView.panel.hasData()) {
+					if(nextView.showNow() && nextView.panel.hasData()) {
 						// active view found that has data to display or is not active yet
 						// (if panel is not active, provider is not started so it cannot have data)
 						

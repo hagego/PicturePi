@@ -2,9 +2,27 @@ package picturepi;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+
+import java.util.logging.LogManager;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class PanelTest {
+	
+	@BeforeAll
+	static void setUpBeforeClass() throws Exception {
+		Configuration.getConfiguration().readConfigurationFile("conf/picturepi.ini");
+		System.setProperty( "java.util.logging.config.file", "conf/picturepi.logging" );
+		
+		try {
+			LogManager.getLogManager().readConfiguration();
+		}
+		catch ( Exception e ) {
+			// unable to read logging configuration file
+			e.printStackTrace();
+		}
+	}
 
 	@Test
 	void testCreatePanelFromNameWithValidName() {

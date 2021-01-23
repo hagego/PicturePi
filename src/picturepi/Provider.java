@@ -95,7 +95,7 @@ public abstract class Provider implements Runnable {
 	}
 	
 	/**
-	 * returns if the prived has data that should be shown also outside of the scheduled time intervals
+	 * returns if the provider currently has data that should be shown also outside of the scheduled time intervals
 	 * default is false, can be overridden by derived classes
 	 * @return true/false an associated view shall be displayed right now even if it is outside of the scheduled time intervals
 	 */

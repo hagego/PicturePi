@@ -156,7 +156,7 @@ class Configuration {
 		LocalTime start,end;
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm");
 		List<ViewData> viewList  = new LinkedList<ViewData>();
-		boolean isDynamic = false;
+		boolean allowOutOfSchedule = false;
 		
 		if(pos!=-1) {
 			try {
@@ -165,10 +165,10 @@ class Configuration {
 					int endPos = data.indexOf(',',pos+1);
 					String displayInterval = endPos>=0 ? data.substring(pos+1,endPos) : data.substring(pos+1);
 					
-					// first check for true/false, controlling the dynamic behavior
+					// first check for true/false, controlling the allowOutOfSchedule behavior
 					if(displayInterval.toLowerCase().contains("true")) {
 						log.fine("view is dynamic");
-						isDynamic = true;
+						allowOutOfSchedule = true;
 					}
 					else {
 						pos = displayInterval.indexOf('-');
@@ -194,9 +194,9 @@ class Configuration {
 					pos = endPos;
 				}
 				
-				// store the isDynamic flag in all ViewData objects
-				for(ViewData viewData:viewList) {
-					viewData.allowOutOfSchedule = isDynamic;
+				// store the allowOutOfSchedule flag in 1st ViewData objects
+				if(viewList.size()>0) {
+					viewList.get(0).allowOutOfSchedule = allowOutOfSchedule;
 				}
 				
 				return viewList;
@@ -355,6 +355,14 @@ class Configuration {
 		
 		public boolean isScheduled() {
 			return LocalTime.now().isAfter(displayStart) && LocalTime.now().isBefore(displayEnd);
+		}
+		
+		public boolean showOutOfSchedule() {
+			return panel.getProvider().hasOutsideScheduleData();
+		}
+		
+		public boolean showNow() {
+			return isScheduled() || showOutOfSchedule();
 		}
 		
 		ViewData() {};
