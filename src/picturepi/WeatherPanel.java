@@ -65,7 +65,7 @@ class WeatherPanel extends Panel {
 		labelForecastSummary.setFont(fontText);
 		labelForecastSummary.setForeground(Color.CYAN.darker().darker());
 		labelForecastSummary.setAlignmentX(CENTER_ALIGNMENT);
-		//add(labelForecastSummary);
+		add(labelForecastSummary);
 		
 		labelForecastIcon.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelForecastIcon);
