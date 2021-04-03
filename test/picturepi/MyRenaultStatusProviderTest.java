@@ -38,12 +38,14 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
-	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_USER", matches = ".*")
 	void testLoginWithValidUser() {
-		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
+		String user = System.getenv().get("PICTUREPI_MYRENAULT_USER");
+		String password = System.getenv().get("PICTUREPI_MYRENAULT_PASSWORD");
 		
-		assertNotNull(provider.login(user, password)); 
+		assertNotNull(user); 
+		assertNotNull(password);
+		assertNotNull(provider.login(user, password));
 	}
 	
 	@Test
@@ -111,11 +113,16 @@ class MyRenaultStatusProviderTest {
 		assertNotNull(provider.getGigyaAccount("myCookieValue")); 
 	}
 	
+	
+	
 	@Test
-	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_USER", matches = ".*")
 	void testGetGigyaAccountWithValidData() {
-		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
+		String user = System.getenv().get("PICTUREPI_MYRENAULT_USER");
+		String password = System.getenv().get("PICTUREPI_MYRENAULT_PASSWORD");
+		
+		assertNotNull(user); 
+		assertNotNull(password);
 		
 		String cookieValue = provider.parseLoginResponse(provider.login(user, password));
 		assertNotNull(provider.getGigyaAccount(cookieValue)); 
@@ -190,10 +197,14 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
-	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_USER", matches = ".*")
 	void testGetGigyaJwtTokenWithValidData() {
-		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
+		String user     = System.getenv().get("PICTUREPI_MYRENAULT_USER");
+		String password = System.getenv().get("PICTUREPI_MYRENAULT_PASSWORD");
+		
+		assertNotNull(user); 
+		assertNotNull(password);
+		
 		
 		String cookieValue = provider.parseLoginResponse(provider.login(user, password));
 		assertNotNull(provider.getGigyaJwtToken(cookieValue)); 
@@ -241,10 +252,13 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
-	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_USER", matches = ".*")
 	void testGetKamereonAccountIdWithValidData() {
-		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
+		String user     = System.getenv().get("PICTUREPI_MYRENAULT_USER");
+		String password = System.getenv().get("PICTUREPI_MYRENAULT_PASSWORD");
+		
+		assertNotNull(user); 
+		assertNotNull(password);
 		
 		String cookieValue = provider.parseLoginResponse(provider.login(user, password));
 		
@@ -327,10 +341,13 @@ class MyRenaultStatusProviderTest {
 	
 	
 	@Test
-	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_USER", matches = ".*")
 	void testGetVehicleListWithValidData() {
-		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
+		String user     = System.getenv().get("PICTUREPI_MYRENAULT_USER");
+		String password = System.getenv().get("PICTUREPI_MYRENAULT_PASSWORD");
+		
+		assertNotNull(user); 
+		assertNotNull(password);
 		
 		String cookieValue = provider.parseLoginResponse(provider.login(user, password));
 		
@@ -468,10 +485,13 @@ class MyRenaultStatusProviderTest {
 	}
 	
 	@Test
-	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_CREDENTIALS", matches = ".*")
+	@EnabledIfEnvironmentVariable(named = "PICTUREPI_MYRENAULT_USER", matches = ".*")
 	void testGetBatteryStatusWithValidData() {
-		String user     = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "user", "");
-		String password = Configuration.getConfiguration().getValue("MyRenaultStatusPanel", "password", "");
+		String user     = System.getenv().get("PICTUREPI_MYRENAULT_USER");
+		String password = System.getenv().get("PICTUREPI_MYRENAULT_PASSWORD");
+		
+		assertNotNull(user); 
+		assertNotNull(password);
 		
 		String cookieValue = provider.parseLoginResponse(provider.login(user, password));
 		

@@ -753,7 +753,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 	private byte  projectorBrightnessSetting = 1;  // current value for the brightness setting of the projector
 	
 	static final int SLEEP_TIME          = 60000;   // sleep time for view scheduler in ms
-	static final int PROJECTOR_BOOT_TIME = 800;     // projector on time after motion detection in ms
+	static final int PROJECTOR_BOOT_TIME = 700;     // projector on time after motion detection in ms
 }
 
 

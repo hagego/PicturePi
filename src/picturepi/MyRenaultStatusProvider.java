@@ -291,7 +291,8 @@ public class MyRenaultStatusProvider extends Provider {
 
 		@SuppressWarnings("serial")
 		HashMap<String, String> inputParameter = new HashMap<String, String>() {{
-		    put("oauth_token",cookieValue);
+		    put("login_token",cookieValue);
+		    put("ApiKey",GIGYA_KEY);
 		}};
 		
 		return executeHttpPostJsonQuery(GIGYA_URL+"/accounts.getAccountInfo", "application/x-www-form-urlencoded;charset=UTF-8", inputParameter);
@@ -343,7 +344,8 @@ public class MyRenaultStatusProvider extends Provider {
 		
 		@SuppressWarnings("serial")
 		HashMap<String, String> inputParameter = new HashMap<String, String>() {{
-		    put("oauth_token",cookieValue);
+		    put("login_token",cookieValue);
+		    put("ApiKey",GIGYA_KEY);
 		    put("fields","data.personId,data.gigyaDataCenter");
 		    put("expiration","900");
 		}};
@@ -418,7 +420,7 @@ public class MyRenaultStatusProvider extends Provider {
 					if(jsonObjectAccount!=null) {
 						JsonString jsonStringAccountId = jsonObjectAccount.getJsonString("accountId");
 						if(jsonStringAccountId!=null) {
-							log.fine("found kamreon account ID: "+jsonStringAccountId.getString());
+							log.fine("found Kamereon account ID: "+jsonStringAccountId.getString());
 							
 							return jsonStringAccountId.getString();
 						}
@@ -656,7 +658,11 @@ public class MyRenaultStatusProvider extends Provider {
 
 
     private final String KAMEREON_URL = "https://api-wired-prod-1-euw1.wrd-aws.com";
-    private final String KAMEREON_KEY = "oF09WnKqvBDcrQzcW1rJNpjIuy7KdGaB";
+    //private final String KAMEREON_KEY = "oF09WnKqvBDcrQzcW1rJNpjIuy7KdGaB";
+    
+    // new key needed since March 2021
+    private final String KAMEREON_KEY = "Ae9FDWugRxZQAGm3Sxgk7uJn6Q4CGEA2";
+    
     		
     
 	String  task              = null;

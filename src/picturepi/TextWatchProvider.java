@@ -227,7 +227,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 	//
 	// private members
 	//
-	private static final Logger   log     = Logger.getLogger( TextWatchPanel.class.getName() );
+	private static final Logger   log     = Logger.getLogger( TextWatchProvider.class.getName() );
 	
 	// time text messages
 	private final String timeMessagesLine1[]   = {
