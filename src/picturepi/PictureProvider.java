@@ -154,6 +154,8 @@ public class PictureProvider extends Provider {
 	List<File> createPictureList() {
 		String rootDirName = Configuration.getConfiguration().getValue("PicturePanel", "rootDir", null);
 		
+		
+		
 		List<File> localList = new LinkedList<File>();
 		
 		if(rootDirName==null) {
@@ -162,8 +164,9 @@ public class PictureProvider extends Provider {
 		}
 		
 		File rootDir = new File(rootDirName);
+		log.config("root directory: "+rootDir.getAbsolutePath());
 	    if(!rootDir.isDirectory()) {
-	    	log.severe("root dir is not a directory: "+rootDir);
+	    	log.severe("root dir is not a directory: "+rootDir.getAbsolutePath());
 	    	return localList;
 	    }
 		
