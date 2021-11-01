@@ -133,7 +133,8 @@ public class MqttClient implements MqttCallbackExtended{
 
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
-		log.fine("MQTT message arrived: topic="+topic+" content="+message);
+		log.fine("MQTT message arrived: topic="+topic);
+		log.finest("MQTT message arrived: topic="+topic+" content="+message);
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -79,6 +80,7 @@ public class PictureProvider extends Provider {
 		
 		// load next image in list and scale
 		if(imageIterator.hasNext() == false) {
+			log.finest("resetting picture iterator");
 			imageIterator = imageList.iterator();
 		}
 		
@@ -152,10 +154,9 @@ public class PictureProvider extends Provider {
 	 * @return list with image filenames to display today
 	 */
 	List<File> createPictureList() {
+		log.fine("creating picture list");
+		
 		String rootDirName = Configuration.getConfiguration().getValue("PicturePanel", "rootDir", null);
-		
-		
-		
 		List<File> localList = new LinkedList<File>();
 		
 		if(rootDirName==null) {
@@ -247,11 +248,13 @@ public class PictureProvider extends Provider {
 	    }
     	
     	// add National Geographic Picture Of The Day
+    	log.fine("adding National Geographic picture of the day");;
     	String pod = downloadNationalGeographicPictureOfTheDay();
     	if(pod!=null) {
     		imageList.add(new File(pod));
     	}
     	
+    	log.fine("creating picture list done");
     	return localList;
 	}
 	
@@ -261,15 +264,20 @@ public class PictureProvider extends Provider {
 	 */
 	String getNationalGeographicPictureOfTheDayUrl() {
 		
+		log.finest("getting URL for National Geographic Picture Of The Day");
 		try {
-			Document document = Jsoup.connect("https://www.nationalgeographic.com/photo-of-the-day/").get();
+			Connection connection = Jsoup.connect("https://www.nationalgeographic.com/photo-of-the-day/");
+			log.finest("conncetion created");
+			Document document = connection.get();
+			log.finest("found document");
 			
 			Elements all = document.getAllElements();
+			log.finest("found elements");
 			
 			Optional<Element> elementUrl = all.stream().filter(e -> e.tag().getName().equals("meta")).filter(e -> e.attr("property").equals("og:image")).findFirst();
 			if(elementUrl.isPresent()) {
 				String url = elementUrl.get().attr("content");
-				log.fine("retrieved URL for Picture Of The Day: "+url);
+				log.finest("retrieved URL for Picture Of The Day: "+url);
 				return url;
 			}
 			else {

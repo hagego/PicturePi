@@ -92,6 +92,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 			return;
 		}
 		
+		
 		// create MQTT client (if specified)
 		log.info("Creating MQTT client");
 		MqttClient.getMqttClient();
@@ -157,8 +158,19 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 		
 		enableDisplay(false);
 		
+		// check if brightness can be overridden thru MQTT message
+		String brightnessOverrideTopic = Configuration.getConfiguration().getValue("screen", MQTT_TOPIC_BRIGHTNESS_OVERRIDE, null);
+		if(brightnessOverrideTopic != null) {
+			// subscribe to MQTT topic to listen for brightness override messages
+			log.config("brightness can be overridden thru MQTT message. Topic: "+brightnessOverrideTopic);
+			MqttClient.getMqttClient().subscribe(brightnessOverrideTopic, this);
+		}
+		else {
+			log.config("no brightness override thru MQTT message.");
+		}
+		
 		// configure motion detection: local PIR sensor or remote thru MQTT
-		String motionDetectionTopic = Configuration.getConfiguration().getValue("screen", "motionDetectionMqttTopic", null);
+		String motionDetectionTopic = Configuration.getConfiguration().getValue("screen", MQTT_TOPIC_MOTION_DETECTION, null);
 		if(motionDetectionTopic != null) {
 			// subscribe to MQTT topic to listen for motion detection
 			log.config("motion detection is handled thru MQTT message. Topic: "+motionDetectionTopic);
@@ -533,6 +545,13 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 					brightness *= brightness;
 				}
 				
+				// if brightness got overridden by MQTT message, use this instead of sensor value
+				if(brightnessOverrideValue>0 ) {
+					// assume that 100% brightness override value fits to full brightness
+					log.fine("overriding brightness with value from MQTT override message: "+brightnessOverrideValue);
+					brightness = (int) (brightnessOverrideValue*2.55);
+				}
+				
 				brightness = Integer.min(brightness, 255);
 				brightness = Integer.max(brightness, 1);
 				
@@ -688,21 +707,30 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 	
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
-		log.fine("MQTT message arrived: topic="+topic+" content="+message);
-		
-		// enter motion detected period, start counter
-		motionDetectedPeriod = true;
-		log.fine("(re-)started motion detected period");
-		
-		if(!scheduledViewActive) {
-			// no scheduled view active. Activate special panel for motion detected case
-			if(motionDetectedPanel != null) {
-				mainWindow.setPanel(motionDetectedPanel);
-				
-				// enable projector
-				enableDisplay(true);
-				adjustBrightness();
+		log.fine("MQTT message arrived: topic="+topic);
+		log.finest("MQTT message arrived: topic="+topic+" content="+message);
+
+		if(topic.equals(Configuration.getConfiguration().getValue("screen", MQTT_TOPIC_MOTION_DETECTION, null))) {
+			// enter motion detected period, start counter
+			motionDetectedPeriod = true;
+			log.fine("(re-)started motion detected period");
+			
+			if(!scheduledViewActive) {
+				// no scheduled view active. Activate special panel for motion detected case
+				if(motionDetectedPanel != null) {
+					mainWindow.setPanel(motionDetectedPanel);
+					
+					// enable projector
+					enableDisplay(true);
+					adjustBrightness();
+				}
 			}
+		}
+		
+		if(topic.equals(Configuration.getConfiguration().getValue("screen", MQTT_TOPIC_BRIGHTNESS_OVERRIDE, null))) {
+			log.fine("received brightness override message, brigntness="+new String(message.getPayload()));
+			
+			brightnessOverrideValue = Double.valueOf(new String(message.getPayload()));
 		}
 	}
 
@@ -711,28 +739,32 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 	//
 	private static final Logger log = Logger.getLogger( PicturePi.class.getName() );
 	
+	private static final String MQTT_TOPIC_MOTION_DETECTION    = "motionDetectionMqttTopic";
+	private static final String MQTT_TOPIC_BRIGHTNESS_OVERRIDE = "brightnessOverrideMqttTopic";
+	
 	private MainWindow mainWindow;
 	
 	private enum ScreenType {DISPLAY,PROJECTOR};                // possible screen types
 	private ScreenType screenType = null;                       // actual screen type
 	
-	private I2CBus 				 bus                   = null;
-	private boolean              displayEnabled        = true;   // tracks if display is currently enabled. Must have initial value of true
-	private boolean              scheduledViewActive   = false;  // tracks if a view is active based on time schedule
+	private I2CBus             bus                     = null;
+	private boolean            displayEnabled          = true;   // tracks if display is currently enabled. Must have initial value of true
+	private boolean            scheduledViewActive     = false;  // tracks if a view is active based on time schedule
+	private double             brightnessOverrideValue = 0.0;    // stores brightness override values received thru MQTT
 
-	private boolean              motionDetected        = false;  // reflects if motion sensor currently detects motion
-	private boolean              motionDetectedPeriod  = false;  // reflects if we are in a motion detected period or not
-	private int                  displayOnCounter      = 0;      // ms counter to disable projector again after motion detection
-	private Panel                motionDetectedPanel   = null;   // Panel to display in case of motion detection
+	private boolean            motionDetected          = false;  // reflects if motion sensor currently detects motion
+	private boolean            motionDetectedPeriod    = false;  // reflects if we are in a motion detected period or not
+	private int                displayOnCounter        = 0;      // ms counter to disable projector again after motion detection
+	private Panel              motionDetectedPanel     = null;   // Panel to display in case of motion detection
 	
-	private Map<String,Panel>    viewName2panelMap     = null;   // maps view names to panel objects
+	private Map<String,Panel>  viewName2panelMap       = null;   // maps view names to panel objects
 	
 	private List<Configuration.ButtonClickViewData>   buttonPanelList  = null;   // maps bluetooth buttons to panels to be displayed
-	AtomicBoolean                buttonClicked         = new AtomicBoolean(false);  // flag to indicate if a bluetooth button was clicked
-	Panel                        buttonClickedPanel    = null;   // panel to display after most recent bluetooth button click
-	static final int             BUTTON_CLICKED_SLEEP_TIME = 15000;  // sleep time after bluetooth button was clicked                    
+	AtomicBoolean              buttonClicked           = new AtomicBoolean(false);  // flag to indicate if a bluetooth button was clicked
+	Panel                      buttonClickedPanel      = null;   // panel to display after most recent bluetooth button click
+	static final int           BUTTON_CLICKED_SLEEP_TIME = 15000;  // sleep time after bluetooth button was clicked                    
 	
-	private Thread               schedulerThread       = null;   // thread object that is running the scheduler
+	private Thread             schedulerThread         = null;   // thread object that is running the scheduler
 	
 
 	// pi4j objects for GPIO
@@ -753,7 +785,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 	private byte  projectorBrightnessSetting = 1;  // current value for the brightness setting of the projector
 	
 	static final int SLEEP_TIME          = 60000;   // sleep time for view scheduler in ms
-	static final int PROJECTOR_BOOT_TIME = 700;     // projector on time after motion detection in ms
+	static final int PROJECTOR_BOOT_TIME = 600;     // projector on time after motion detection in ms
 }
 
 

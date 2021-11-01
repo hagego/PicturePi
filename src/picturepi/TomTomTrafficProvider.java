@@ -82,7 +82,7 @@ public class TomTomTrafficProvider extends Provider {
 			
 			return null;
 		}
-		log.info("Start/End locations: "+locations);
+		log.fine("Start/End locations: "+locations);
 		locations = locations.replace(",","%2C");
 		locations = locations.replace(":","%3A");
 		

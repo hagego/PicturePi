@@ -73,8 +73,13 @@ public abstract class Provider implements Runnable {
 		// start endless loop
 		log.fine("Provider thread started for "+panel.getClass());
 		while (thread!=null && !thread.isInterrupted()) {
-			//log.finest("fetching data for "+panel.getClass());
-			fetchData();
+			try {
+				fetchData();
+			}
+			catch(Throwable t) {
+				log.severe("Exception while calling fetchData for "+this.getClass().toString());
+				log.severe(t.getMessage());
+			}
 			
 			try {
 				Thread.sleep(sleepTimeSeconds*1000);
