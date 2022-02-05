@@ -21,7 +21,7 @@ class TextWatchPanel extends Panel {
 	public TextWatchPanel() {
 		super(new TextWatchProvider());
 		
-		int fontSizeText = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeText", 70);
+		int fontSizeText = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeText", 60);
 		int fontSizeTime = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeTime", 70);
 		
 		setBackground(Color.BLACK);
@@ -32,17 +32,22 @@ class TextWatchPanel extends Panel {
 		
 		add(Box.createVerticalGlue());
 		
-		labelTimeTextLine1.setFont(fontText);
-		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
-		labelTimeTextLine1.setAlignmentX(CENTER_ALIGNMENT);
-		add(labelTimeTextLine1);
-		
-		labelTimeTextLine2.setFont(fontText);
-		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker());
-		labelTimeTextLine2.setAlignmentX(CENTER_ALIGNMENT);
-		add(labelTimeTextLine2);
-		
-		add(Box.createVerticalGlue());
+		displayTextTime = false;
+		if(fontSizeText>0) {
+			displayTextTime = true;
+			
+			labelTimeTextLine1.setFont(fontText);
+			labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker());
+			labelTimeTextLine1.setAlignmentX(CENTER_ALIGNMENT);
+			add(labelTimeTextLine1);
+			
+			labelTimeTextLine2.setFont(fontText);
+			labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker());
+			labelTimeTextLine2.setAlignmentX(CENTER_ALIGNMENT);
+			add(labelTimeTextLine2);
+			
+			add(Box.createVerticalGlue());
+		}
 		
 		labelTime.setFont(fontTime);
 		labelTime.setForeground(Color.CYAN.darker().darker().darker());
@@ -67,16 +72,20 @@ class TextWatchPanel extends Panel {
 	
 	@Override
 	void setColorDark() {
-		labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker().darker());
-		labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker().darker());
+		if(displayTextTime) {
+			labelTimeTextLine1.setForeground(Color.MAGENTA.darker().darker().darker());
+			labelTimeTextLine2.setForeground(Color.MAGENTA.darker().darker().darker());
+		}
 		labelTime.setForeground(Color.CYAN.darker().darker().darker());
 		labelOptionText.setForeground(Color.ORANGE.darker().darker().darker());
 	}
 	
 	@Override
 	void setColorBright() {
-		labelTimeTextLine1.setForeground(Color.MAGENTA.brighter().brighter().brighter());
-		labelTimeTextLine2.setForeground(Color.MAGENTA.brighter().brighter().brighter());
+		if(displayTextTime) {
+			labelTimeTextLine1.setForeground(Color.MAGENTA.brighter().brighter().brighter());
+			labelTimeTextLine2.setForeground(Color.MAGENTA.brighter().brighter().brighter());
+		}
 		labelTime.setForeground(Color.CYAN.brighter().brighter().brighter());
 		labelOptionText.setForeground(Color.ORANGE.brighter().brighter().brighter());
 	}
@@ -86,8 +95,10 @@ class TextWatchPanel extends Panel {
 	 * @param timeText actual time as text
 	 */
 	synchronized void setTimeText(String timeTextLine1,String timeTextLine2) {
-		labelTimeTextLine1.setText(timeTextLine1);
-		labelTimeTextLine2.setText(timeTextLine2);
+		if(displayTextTime) {
+			labelTimeTextLine1.setText(timeTextLine1);
+			labelTimeTextLine2.setText(timeTextLine2);
+		}
 	}
 	
 	/**
@@ -125,5 +136,7 @@ class TextWatchPanel extends Panel {
 	private JLabel    labelTimeTextLine1 = new JLabel();   // label for time as text, line 1
 	private JLabel    labelTimeTextLine2 = new JLabel();   // label for time as text, line 2
 	private JLabel    labelTime          = new JLabel();   // label for standard time display
-	private JLabel    labelOptionText    = new JLabel();
+	private JLabel    labelOptionText    = new JLabel();   // label for optional text display
+	
+	private boolean   displayTextTime    = false;          // switch if textual time is shown, controlled thru font size in config file
 }
