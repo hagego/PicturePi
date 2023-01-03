@@ -30,6 +30,7 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		
 		// subscribe to MQTT topic to retrieve alarm list from alarm pi
 		displayAlarm = false;
+		displaySeconds = Configuration.getConfiguration().getValue("TextWatchPanel", "displaySeconds", true);
 		String alarmListTopic = Configuration.getConfiguration().getValue("TextWatchPanel", "mqttTopicAlarmlist", null);
 		if(alarmListTopic != null) {
 			log.info("subscribing for alarmlist");
@@ -67,7 +68,12 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 		}
 		
 		LocalTime time = LocalTime.now();
-		textWatchpanel.setTime(time.format(timeFormatter));
+		if(displaySeconds) {
+			textWatchpanel.setTime(time.format(timeFormatterWithSeconds));
+		}
+		else {
+			textWatchpanel.setTime(time.format(timeFormatterWithoutSeconds));
+		}
 		
 		
 		if(displayAlarm==false) {
@@ -266,9 +272,11 @@ public class TextWatchProvider extends Provider implements IMqttMessageListener 
 	private	        LocalTime         alarmTimeToday = null;     // stores alarm time for the current day (or null)
 	private	        LocalTime         dynamicViewOffTime = null; // time when dynamic view must be switched off again
 	private         boolean           activateViewDynamically = false;
-	private final   DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-	private final   DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("d. MMM yyyy");
+	private final   DateTimeFormatter timeFormatterWithSeconds    = DateTimeFormatter.ofPattern("HH:mm:ss");
+	private final   DateTimeFormatter timeFormatterWithoutSeconds = DateTimeFormatter.ofPattern("HH:mm");
+	private final   DateTimeFormatter dateFormatter               = DateTimeFormatter.ofPattern("d. MMM yyyy");
 	private         LocalDate         lastDate = null;
-	private         boolean           displayAlarm = false;     //
+	private         boolean           displaySeconds = true;     // display seconds or not
+	private         boolean           displayAlarm = false;      //
 	private         ImageIcon         alarmClockIcon;
 }

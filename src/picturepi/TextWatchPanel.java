@@ -21,14 +21,16 @@ class TextWatchPanel extends Panel {
 	public TextWatchPanel() {
 		super(new TextWatchProvider());
 		
-		int fontSizeText = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeText", 60);
-		int fontSizeTime = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeTime", 70);
+		int fontSizeText      = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeText", 60);
+		int fontSizeTime      = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeTime", 70);
+		int fontSizeExtraText = Configuration.getConfiguration().getValue(this.getClass().getSimpleName(), "fontSizeExtraText", 70);
 		
 		setBackground(Color.BLACK);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
-		Font fontText = new Font(Font.SANS_SERIF, Font.BOLD, fontSizeText);
-		Font fontTime = new Font(Font.SANS_SERIF, Font.BOLD, fontSizeTime);
+		Font fontText      = new Font(Font.SANS_SERIF, Font.BOLD, fontSizeText);
+		Font fontTime      = new Font(Font.SANS_SERIF, Font.BOLD, fontSizeTime);
+		Font fontExtraText = new Font(Font.SANS_SERIF, Font.BOLD, fontSizeExtraText);
 		
 		add(Box.createVerticalGlue());
 		
@@ -50,13 +52,13 @@ class TextWatchPanel extends Panel {
 		}
 		
 		labelTime.setFont(fontTime);
-		labelTime.setForeground(Color.CYAN.darker().darker().darker());
+		labelTime.setForeground(Color.CYAN.darker());
 		labelTime.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTime);
 		
 		add(Box.createVerticalGlue());
 		
-		labelOptionText.setFont(fontTime);
+		labelOptionText.setFont(fontExtraText);
 		labelOptionText.setForeground(Color.CYAN.darker().darker().darker());
 		labelOptionText.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelOptionText);
@@ -137,6 +139,6 @@ class TextWatchPanel extends Panel {
 	private JLabel    labelTimeTextLine2 = new JLabel();   // label for time as text, line 2
 	private JLabel    labelTime          = new JLabel();   // label for standard time display
 	private JLabel    labelOptionText    = new JLabel();   // label for optional text display
-	
+
 	private boolean   displayTextTime    = false;          // switch if textual time is shown, controlled thru font size in config file
 }

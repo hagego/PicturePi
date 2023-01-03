@@ -1,0 +1,995 @@
+{
+	"formatVersion": "0.0.12",
+	"routes": [
+		{
+			"summary": {
+				"lengthInMeters": 34548,
+				"travelTimeInSeconds": 2220,
+				"trafficDelayInSeconds": 0,
+				"trafficLengthInMeters": 0,
+				"departureTime": "2023-01-03T22:41:17+01:00",
+				"arrivalTime": "2023-01-03T23:18:16+01:00",
+				"noTrafficTravelTimeInSeconds": 2220,
+				"historicTrafficTravelTimeInSeconds": 2220,
+				"liveTrafficIncidentsTravelTimeInSeconds": 2220
+			},
+			"legs": [
+				{
+					"summary": {
+						"lengthInMeters": 34548,
+						"travelTimeInSeconds": 2220,
+						"trafficDelayInSeconds": 0,
+						"trafficLengthInMeters": 0,
+						"departureTime": "2023-01-03T22:41:17+01:00",
+						"arrivalTime": "2023-01-03T23:18:16+01:00",
+						"noTrafficTravelTimeInSeconds": 2220,
+						"historicTrafficTravelTimeInSeconds": 2220,
+						"liveTrafficIncidentsTravelTimeInSeconds": 2220
+					}
+				}
+			],
+			"sections": [
+				{
+					"startPointIndex": 0,
+					"endPointIndex": 1017,
+					"sectionType": "TRAVEL_MODE",
+					"travelMode": "car"
+				}
+			],
+			"guidance": {
+				"instructions": [
+					{
+						"routeOffsetInMeters": 0,
+						"travelTimeInSeconds": 0,
+						"point": {
+							"latitude": 48.63464,
+							"longitude": 9.32575
+						},
+						"pointIndex": 0,
+						"instructionType": "LOCATION_DEPARTURE",
+						"street": "Kornbeckstraße",
+						"countryCode": "DEU",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "DEPART"
+					},
+					{
+						"routeOffsetInMeters": 180,
+						"travelTimeInSeconds": 26,
+						"point": {
+							"latitude": 48.63623,
+							"longitude": 9.32530
+						},
+						"pointIndex": 4,
+						"instructionType": "TURN",
+						"street": "Kornbeckstraße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 90,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_RIGHT"
+					},
+					{
+						"routeOffsetInMeters": 213,
+						"travelTimeInSeconds": 41,
+						"point": {
+							"latitude": 48.63635,
+							"longitude": 9.32571
+						},
+						"pointIndex": 5,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"L1205"
+						],
+						"street": "Stuttgarter Straße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 991,
+						"travelTimeInSeconds": 122,
+						"point": {
+							"latitude": 48.63864,
+							"longitude": 9.31916
+						},
+						"pointIndex": 63,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"L1185"
+						],
+						"street": "Grötzinger Straße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 1276,
+						"travelTimeInSeconds": 151,
+						"point": {
+							"latitude": 48.63914,
+							"longitude": 9.31540
+						},
+						"pointIndex": 73,
+						"instructionType": "DIRECTION_INFO",
+						"roadNumbers": [
+							"L1185"
+						],
+						"street": "Grötzinger Straße",
+						"countryCode": "DEU",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "FOLLOW"
+					},
+					{
+						"routeOffsetInMeters": 15133,
+						"travelTimeInSeconds": 959,
+						"point": {
+							"latitude": 48.63609,
+							"longitude": 9.14880
+						},
+						"pointIndex": 484,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"L1185"
+						],
+						"street": "Nürtinger Straße",
+						"countryCode": "DEU",
+						"junctionType": "ROUNDABOUT",
+						"turnAngleInDecimalDegrees": 0,
+						"roundaboutExitNumber": 2,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "ROUNDABOUT_CROSS"
+					},
+					{
+						"routeOffsetInMeters": 16584,
+						"travelTimeInSeconds": 1074,
+						"point": {
+							"latitude": 48.63852,
+							"longitude": 9.13071
+						},
+						"pointIndex": 556,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"L1185"
+						],
+						"street": "Stuttgarter Straße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 16731,
+						"travelTimeInSeconds": 1093,
+						"point": {
+							"latitude": 48.63780,
+							"longitude": 9.12903
+						},
+						"pointIndex": 564,
+						"instructionType": "TURN",
+						"street": "Stuttgarter Straße",
+						"countryCode": "DEU",
+						"junctionType": "ROUNDABOUT",
+						"turnAngleInDecimalDegrees": -45,
+						"roundaboutExitNumber": 3,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "ROUNDABOUT_CROSS"
+					},
+					{
+						"routeOffsetInMeters": 16931,
+						"travelTimeInSeconds": 1118,
+						"point": {
+							"latitude": 48.63634,
+							"longitude": 9.12861
+						},
+						"pointIndex": 600,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"K1050"
+						],
+						"street": "Weilerbergstraße",
+						"countryCode": "DEU",
+						"junctionType": "ROUNDABOUT",
+						"turnAngleInDecimalDegrees": 90,
+						"roundaboutExitNumber": 1,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "ROUNDABOUT_RIGHT"
+					},
+					{
+						"routeOffsetInMeters": 17202,
+						"travelTimeInSeconds": 1149,
+						"point": {
+							"latitude": 48.63586,
+							"longitude": 9.12527
+						},
+						"pointIndex": 622,
+						"instructionType": "DIRECTION_INFO",
+						"roadNumbers": [
+							"K1050"
+						],
+						"street": "Weilerbergstraße",
+						"countryCode": "DEU",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "FOLLOW"
+					},
+					{
+						"routeOffsetInMeters": 22168,
+						"travelTimeInSeconds": 1403,
+						"point": {
+							"latitude": 48.62326,
+							"longitude": 9.06510
+						},
+						"pointIndex": 724,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"K1062"
+						],
+						"street": "Hauptstraße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 0,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "STRAIGHT"
+					},
+					{
+						"routeOffsetInMeters": 24207,
+						"travelTimeInSeconds": 1575,
+						"point": {
+							"latitude": 48.61865,
+							"longitude": 9.03877
+						},
+						"pointIndex": 782,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"K1062"
+						],
+						"street": "Arthur-Hecker-Straße",
+						"countryCode": "DEU",
+						"junctionType": "ROUNDABOUT",
+						"turnAngleInDecimalDegrees": 0,
+						"roundaboutExitNumber": 2,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "ROUNDABOUT_CROSS"
+					},
+					{
+						"routeOffsetInMeters": 25336,
+						"travelTimeInSeconds": 1677,
+						"point": {
+							"latitude": 48.61557,
+							"longitude": 9.02462
+						},
+						"pointIndex": 817,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"B464",
+							"L1208"
+						],
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_RIGHT"
+					},
+					{
+						"routeOffsetInMeters": 25661,
+						"travelTimeInSeconds": 1704,
+						"point": {
+							"latitude": 48.61838,
+							"longitude": 9.02344
+						},
+						"pointIndex": 821,
+						"instructionType": "DIRECTION_INFO",
+						"roadNumbers": [
+							"B464",
+							"L1208"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Böblingen",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "FOLLOW"
+					},
+					{
+						"routeOffsetInMeters": 33366,
+						"travelTimeInSeconds": 2056,
+						"point": {
+							"latitude": 48.67335,
+							"longitude": 8.98066
+						},
+						"pointIndex": 971,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"B464"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Böblingen",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TAKE_EXIT"
+					},
+					{
+						"routeOffsetInMeters": 33680,
+						"travelTimeInSeconds": 2082,
+						"point": {
+							"latitude": 48.67603,
+							"longitude": 8.98021
+						},
+						"pointIndex": 990,
+						"instructionType": "TURN",
+						"street": "Herrenberger Straße",
+						"countryCode": "DEU",
+						"signpostText": "Böblingen",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 90,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_RIGHT"
+					},
+					{
+						"routeOffsetInMeters": 34024,
+						"travelTimeInSeconds": 2110,
+						"point": {
+							"latitude": 48.67728,
+							"longitude": 8.98448
+						},
+						"pointIndex": 998,
+						"instructionType": "TURN",
+						"street": "Hewlett-Packard-Straße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 34291,
+						"travelTimeInSeconds": 2149,
+						"point": {
+							"latitude": 48.67936,
+							"longitude": 8.98366
+						},
+						"pointIndex": 1008,
+						"instructionType": "TURN",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 34490,
+						"travelTimeInSeconds": 2187,
+						"point": {
+							"latitude": 48.67866,
+							"longitude": 8.98117
+						},
+						"pointIndex": 1016,
+						"instructionType": "TURN",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 34548,
+						"travelTimeInSeconds": 2220,
+						"point": {
+							"latitude": 48.67817,
+							"longitude": 8.98147
+						},
+						"pointIndex": 1017,
+						"instructionType": "LOCATION_ARRIVAL",
+						"countryCode": "DEU",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "ARRIVE_LEFT"
+					}
+				],
+				"instructionGroups": [
+					{
+						"firstInstructionIndex": 0,
+						"lastInstructionIndex": 2,
+						"groupLengthInMeters": 991
+					},
+					{
+						"firstInstructionIndex": 3,
+						"lastInstructionIndex": 9,
+						"groupLengthInMeters": 21177
+					},
+					{
+						"firstInstructionIndex": 10,
+						"lastInstructionIndex": 11,
+						"groupLengthInMeters": 3168
+					},
+					{
+						"firstInstructionIndex": 12,
+						"lastInstructionIndex": 16,
+						"groupLengthInMeters": 8955
+					},
+					{
+						"firstInstructionIndex": 17,
+						"lastInstructionIndex": 19,
+						"groupLengthInMeters": 257
+					}
+				]
+			}
+		},
+		{
+			"summary": {
+				"lengthInMeters": 41467,
+				"travelTimeInSeconds": 1691,
+				"trafficDelayInSeconds": 0,
+				"trafficLengthInMeters": 0,
+				"departureTime": "2023-01-03T22:41:17+01:00",
+				"arrivalTime": "2023-01-03T23:09:27+01:00",
+				"noTrafficTravelTimeInSeconds": 1683,
+				"historicTrafficTravelTimeInSeconds": 1683,
+				"liveTrafficIncidentsTravelTimeInSeconds": 1691,
+				"deviationDistance": 0,
+				"deviationTime": 0,
+				"deviationPoint": {
+					"latitude": 48.63464,
+					"longitude": 9.32575
+				},
+				"planningReason": "Better_Proposal"
+			},
+			"legs": [
+				{
+					"summary": {
+						"lengthInMeters": 41467,
+						"travelTimeInSeconds": 1691,
+						"trafficDelayInSeconds": 0,
+						"trafficLengthInMeters": 0,
+						"departureTime": "2023-01-03T22:41:17+01:00",
+						"arrivalTime": "2023-01-03T23:09:27+01:00",
+						"noTrafficTravelTimeInSeconds": 1683,
+						"historicTrafficTravelTimeInSeconds": 1683,
+						"liveTrafficIncidentsTravelTimeInSeconds": 1691
+					}
+				}
+			],
+			"sections": [
+				{
+					"startPointIndex": 0,
+					"endPointIndex": 710,
+					"sectionType": "TRAVEL_MODE",
+					"travelMode": "car"
+				}
+			],
+			"guidance": {
+				"instructions": [
+					{
+						"routeOffsetInMeters": 0,
+						"travelTimeInSeconds": 0,
+						"point": {
+							"latitude": 48.63464,
+							"longitude": 9.32575
+						},
+						"pointIndex": 0,
+						"instructionType": "LOCATION_DEPARTURE",
+						"street": "Kornbeckstraße",
+						"countryCode": "DEU",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "DEPART"
+					},
+					{
+						"routeOffsetInMeters": 88,
+						"travelTimeInSeconds": 14,
+						"point": {
+							"latitude": 48.63400,
+							"longitude": 9.32636
+						},
+						"pointIndex": 3,
+						"instructionType": "TURN",
+						"street": "Sperberseck",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 166,
+						"travelTimeInSeconds": 36,
+						"point": {
+							"latitude": 48.63432,
+							"longitude": 9.32729
+						},
+						"pointIndex": 5,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"L1205"
+						],
+						"street": "Stuttgarter Straße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_RIGHT"
+					},
+					{
+						"routeOffsetInMeters": 328,
+						"travelTimeInSeconds": 77,
+						"point": {
+							"latitude": 48.63322,
+							"longitude": 9.32854
+						},
+						"pointIndex": 15,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"B313"
+						],
+						"street": "Metzinger Straße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 4790,
+						"travelTimeInSeconds": 282,
+						"point": {
+							"latitude": 48.66808,
+							"longitude": 9.35397
+						},
+						"pointIndex": 85,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"B313"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Karlsruhe",
+						"junctionType": "BIFURCATION",
+						"turnAngleInDecimalDegrees": -45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "KEEP_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 5237,
+						"travelTimeInSeconds": 299,
+						"point": {
+							"latitude": 48.67161,
+							"longitude": 9.35667
+						},
+						"pointIndex": 99,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"A8",
+							"E52"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Karlsruhe",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TAKE_EXIT"
+					},
+					{
+						"routeOffsetInMeters": 5768,
+						"travelTimeInSeconds": 331,
+						"point": {
+							"latitude": 48.67124,
+							"longitude": 9.35564
+						},
+						"pointIndex": 133,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"A8",
+							"E52"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Karlsruhe",
+						"junctionType": "BIFURCATION",
+						"turnAngleInDecimalDegrees": -45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "KEEP_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 5901,
+						"travelTimeInSeconds": 336,
+						"point": {
+							"latitude": 48.67178,
+							"longitude": 9.35403
+						},
+						"pointIndex": 137,
+						"instructionType": "ROAD_CHANGE",
+						"roadNumbers": [
+							"A8",
+							"E52"
+						],
+						"countryCode": "DEU",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "ENTER_MOTORWAY"
+					},
+					{
+						"routeOffsetInMeters": 6228,
+						"travelTimeInSeconds": 346,
+						"point": {
+							"latitude": 48.67340,
+							"longitude": 9.35033
+						},
+						"pointIndex": 140,
+						"instructionType": "DIRECTION_INFO",
+						"roadNumbers": [
+							"A8",
+							"E52"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Stuttgart",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "FOLLOW"
+					},
+					{
+						"routeOffsetInMeters": 28030,
+						"travelTimeInSeconds": 1054,
+						"point": {
+							"latitude": 48.72233,
+							"longitude": 9.07583
+						},
+						"pointIndex": 375,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"A831"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Böblingen",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TAKE_EXIT"
+					},
+					{
+						"routeOffsetInMeters": 28423,
+						"travelTimeInSeconds": 1068,
+						"point": {
+							"latitude": 48.72482,
+							"longitude": 9.07207
+						},
+						"pointIndex": 385,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"A831"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Böblingen",
+						"junctionType": "BIFURCATION",
+						"turnAngleInDecimalDegrees": -45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "KEEP_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 29307,
+						"travelTimeInSeconds": 1116,
+						"point": {
+							"latitude": 48.72598,
+							"longitude": 9.06744
+						},
+						"pointIndex": 435,
+						"instructionType": "ROAD_CHANGE",
+						"roadNumbers": [
+							"A831"
+						],
+						"countryCode": "DEU",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "ENTER_MOTORWAY"
+					},
+					{
+						"routeOffsetInMeters": 32007,
+						"travelTimeInSeconds": 1209,
+						"point": {
+							"latitude": 48.70618,
+							"longitude": 9.04971
+						},
+						"pointIndex": 477,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"A81",
+							"E41"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Singen",
+						"junctionType": "BIFURCATION",
+						"turnAngleInDecimalDegrees": -45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "KEEP_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 32744,
+						"travelTimeInSeconds": 1235,
+						"point": {
+							"latitude": 48.70363,
+							"longitude": 9.04066
+						},
+						"pointIndex": 491,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"A81",
+							"E41"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Böblingen/Sindelfingen",
+						"junctionType": "BIFURCATION",
+						"turnAngleInDecimalDegrees": -45,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "KEEP_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 33279,
+						"travelTimeInSeconds": 1255,
+						"point": {
+							"latitude": 48.70296,
+							"longitude": 9.03346
+						},
+						"pointIndex": 499,
+						"instructionType": "DIRECTION_INFO",
+						"roadNumbers": [
+							"A81",
+							"E41"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Böblingen-Hulb",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "FOLLOW"
+					},
+					{
+						"routeOffsetInMeters": 38153,
+						"travelTimeInSeconds": 1435,
+						"point": {
+							"latitude": 48.68464,
+							"longitude": 8.97527
+						},
+						"pointIndex": 571,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"K1077"
+						],
+						"street": "Herrenberger Straße",
+						"countryCode": "DEU",
+						"signpostText": "Böblingen-Hulb",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TAKE_EXIT"
+					},
+					{
+						"routeOffsetInMeters": 38321,
+						"travelTimeInSeconds": 1442,
+						"point": {
+							"latitude": 48.68413,
+							"longitude": 8.97312
+						},
+						"pointIndex": 575,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"B464"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Holzgerlingen",
+						"junctionType": "BIFURCATION",
+						"turnAngleInDecimalDegrees": -45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "KEEP_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 38559,
+						"travelTimeInSeconds": 1453,
+						"point": {
+							"latitude": 48.68301,
+							"longitude": 8.97037
+						},
+						"pointIndex": 579,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"K1077"
+						],
+						"street": "Herrenberger Straße",
+						"countryCode": "DEU",
+						"signpostText": "Holzgerlingen",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TAKE_EXIT"
+					},
+					{
+						"routeOffsetInMeters": 39067,
+						"travelTimeInSeconds": 1483,
+						"point": {
+							"latitude": 48.68187,
+							"longitude": 8.97012
+						},
+						"pointIndex": 625,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"B464"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Holzgerlingen",
+						"junctionType": "BIFURCATION",
+						"turnAngleInDecimalDegrees": -45,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "KEEP_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 39996,
+						"travelTimeInSeconds": 1518,
+						"point": {
+							"latitude": 48.67550,
+							"longitude": 8.97813
+						},
+						"pointIndex": 642,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"B464"
+						],
+						"countryCode": "DEU",
+						"signpostText": "Böblingen",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 45,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TAKE_EXIT"
+					},
+					{
+						"routeOffsetInMeters": 40286,
+						"travelTimeInSeconds": 1536,
+						"point": {
+							"latitude": 48.67427,
+							"longitude": 8.97754
+						},
+						"pointIndex": 665,
+						"instructionType": "TURN",
+						"roadNumbers": [
+							"K1077"
+						],
+						"street": "Herrenberger Straße",
+						"countryCode": "DEU",
+						"signpostText": "Böblingen",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": 90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_RIGHT"
+					},
+					{
+						"routeOffsetInMeters": 40943,
+						"travelTimeInSeconds": 1581,
+						"point": {
+							"latitude": 48.67728,
+							"longitude": 8.98448
+						},
+						"pointIndex": 691,
+						"instructionType": "TURN",
+						"street": "Hewlett-Packard-Straße",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 41210,
+						"travelTimeInSeconds": 1620,
+						"point": {
+							"latitude": 48.67936,
+							"longitude": 8.98366
+						},
+						"pointIndex": 701,
+						"instructionType": "TURN",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 41409,
+						"travelTimeInSeconds": 1658,
+						"point": {
+							"latitude": 48.67866,
+							"longitude": 8.98117
+						},
+						"pointIndex": 709,
+						"instructionType": "TURN",
+						"countryCode": "DEU",
+						"junctionType": "REGULAR",
+						"turnAngleInDecimalDegrees": -90,
+						"possibleCombineWithNext": true,
+						"drivingSide": "RIGHT",
+						"maneuver": "TURN_LEFT"
+					},
+					{
+						"routeOffsetInMeters": 41467,
+						"travelTimeInSeconds": 1691,
+						"point": {
+							"latitude": 48.67817,
+							"longitude": 8.98147
+						},
+						"pointIndex": 710,
+						"instructionType": "LOCATION_ARRIVAL",
+						"countryCode": "DEU",
+						"possibleCombineWithNext": false,
+						"drivingSide": "RIGHT",
+						"maneuver": "ARRIVE_LEFT"
+					}
+				],
+				"instructionGroups": [
+					{
+						"firstInstructionIndex": 0,
+						"lastInstructionIndex": 2,
+						"groupLengthInMeters": 328
+					},
+					{
+						"firstInstructionIndex": 3,
+						"lastInstructionIndex": 8,
+						"groupLengthInMeters": 27702
+					},
+					{
+						"firstInstructionIndex": 9,
+						"lastInstructionIndex": 11,
+						"groupLengthInMeters": 3977
+					},
+					{
+						"firstInstructionIndex": 12,
+						"lastInstructionIndex": 14,
+						"groupLengthInMeters": 6146
+					},
+					{
+						"firstInstructionIndex": 15,
+						"lastInstructionIndex": 20,
+						"groupLengthInMeters": 2790
+					},
+					{
+						"firstInstructionIndex": 21,
+						"lastInstructionIndex": 24,
+						"groupLengthInMeters": 524
+					}
+				]
+			}
+		}
+	]
+}

@@ -554,7 +554,7 @@ public class PicturePi extends ButtonConnectionChannel.Callbacks implements IMqt
 				}
 				
 				brightness = Integer.min(brightness, 255);
-				brightness = Integer.max(brightness, 2);
+				brightness = Integer.max(brightness, 3);
 				
 				if((byte)brightness != projectorBrightnessSetting) {
 					log.fine("adjusting projector brightness to "+brightness);
