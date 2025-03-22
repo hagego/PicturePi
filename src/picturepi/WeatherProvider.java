@@ -36,7 +36,7 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 		// subscribe to MQTT topics to retrieve measured temperature updates
 		mqttTopicTemperature = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), mqttTopicTemperatureConfigKey, null);
 		if(mqttTopicTemperature != null) {
-			log.info("subscribing for temperature");
+			log.info("subscribing for temperature, MQTT key="+mqttTopicTemperature);
 			MqttClient.getMqttClient().subscribe(mqttTopicTemperature, this);
 		}
 		mqttTopicTemperatureMin = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), mqttTopicTemperatureMinConfigKey, null);
@@ -44,6 +44,17 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 			log.info("subscribing for min temperature");
 			MqttClient.getMqttClient().subscribe(mqttTopicTemperatureMin, this);
 		}
+		mqttTopicTemperatureMax = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), mqttTopicTemperatureMaxConfigKey, null);
+		if(mqttTopicTemperatureMax != null) {
+			log.info("subscribing for min temperature");
+			MqttClient.getMqttClient().subscribe(mqttTopicTemperatureMax, this);
+		}
+		mqttTopicTemperatureListOfDay = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), mqttTopicTemperatureListOfDayKey, null);
+		if(mqttTopicTemperatureListOfDay != null) {
+			log.info("subscribing for temperature list of day");
+			MqttClient.getMqttClient().subscribe(mqttTopicTemperatureListOfDay, this);
+		}
+
 		
 		log.fine("WeatherProvider created");
 	}
@@ -53,8 +64,8 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 	 * @return URL for OpenWeatherMap
 	 */
 	URL buildUrl() {
-		final String BASE_URL  = "https://api.openweathermap.org/data/2.5/onecall";
-		final String API_KEY   = "f593e17912b28437a5f95565670f8e2b";
+		final String BASE_URL  = "https://api.openweathermap.org/data/3.0/onecall";
+		final String API_KEY   = "c38c5b6c88b6c70b98209a0f5427e779"; // PicturePi API key for OpenWeatherMap
 		
 		URL    url = null;
 		Double longitude = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), "longitude", 0.0);
@@ -121,7 +132,7 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 			log.severe("IO Exception during HTTP retrieval: "+e.getMessage());
 		}
         finally {
-            try { is.close(); } catch(Throwable t) {}
+            try { if(is!=null) {is.close();} } catch(Throwable t) {}
         }
 
 		return null;
@@ -211,14 +222,14 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 		}
 		
 		if(weatherPanel!=null) {
-			weatherPanel.setForecast(forecastDate, description, temperatureMax.doubleValue(),icon);
+			weatherPanel.setForecast(forecastDate, description, temperatureMin.doubleValue(),temperatureMax.doubleValue(),icon);
 		}
 		
 	    return true;
 	}
 	
 	@Override
-	void init() {
+	protected void init() {
 		String followDynamicViewName = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), "followDynamicView", null);
 		if(followDynamicViewName!=null) {
 			log.fine("looking for view to follow with showDynamic: "+followDynamicViewName);
@@ -281,10 +292,32 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 			}
 			if(weatherPanel != null && mqttTopicTemperatureMin!=null && topic.equals(mqttTopicTemperatureMin)) {
 				log.fine("Updating min temperature with "+message.toString());
-				// due to issues with openhab, the message contains also the unit "°C"
+				// due to issues with openhab, the message contains also the unit "ï¿½C"
 				int pos = message.toString().indexOf(' ');
 				String s = pos>0 ? message.toString().substring(0, pos) : message.toString(); 
 				weatherPanel.setTemperatureMin(Double.parseDouble(s));
+			}
+			if(weatherPanel != null && mqttTopicTemperatureMax!=null && topic.equals(mqttTopicTemperatureMax)) {
+				log.fine("Updating max temperature with "+message.toString());
+				// due to issues with openhab, the message contains also the unit "ï¿½C"
+				int pos = message.toString().indexOf(' ');
+				String s = pos>0 ? message.toString().substring(0, pos) : message.toString(); 
+				weatherPanel.setTemperatureMax(Double.parseDouble(s));
+			}
+			if(weatherPanel != null && mqttTopicTemperatureListOfDay!=null && topic.equals(mqttTopicTemperatureListOfDay)) {
+				log.fine("Updating temperature list of day with "+message.toString());
+				// message contains a JSON object with time and temperature arrays
+				JsonReader reader = Json.createReader(new java.io.StringReader(message.toString()));
+				JsonObject jsonObject = reader.readObject();
+				JsonArray timeArray = jsonObject.getJsonArray("hours");
+				JsonArray temperatureArray = jsonObject.getJsonArray("temperatures");
+				double[] time = new double[timeArray.size()];
+				double[] temperature = new double[temperatureArray.size()];
+				for(int i=0; i<timeArray.size(); i++) {
+					time[i]        = timeArray.getJsonNumber(i).doubleValue();
+					temperature[i] = temperatureArray.getJsonNumber(i).doubleValue();
+				}
+				weatherPanel.updateTemperatureChart(time, temperature);
 			}
 		}
 		catch(Exception e) {
@@ -299,8 +332,13 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 	
 	private final String 			mqttTopicTemperatureConfigKey    = "mqttTopicTemperature";              // key in config file for MQTT topic for temperature
 	private final String 			mqttTopicTemperatureMinConfigKey = "mqttTopicTemperatureMin";           // key in config file for MQTT topic of min. temperature
+	private final String 			mqttTopicTemperatureMaxConfigKey = "mqttTopicTemperatureMax";           // key in config file for MQTT topic of max. temperature
+	private final String 			mqttTopicTemperatureListOfDayKey = "mqttTopicTemperatureListOfDay";     // key in config file for MQTT topic for temperature list of day
+
 	private       String            mqttTopicTemperature;
 	private       String            mqttTopicTemperatureMin;
+	private       String            mqttTopicTemperatureMax;
+	private	      String            mqttTopicTemperatureListOfDay;	
 	
 	private       WeatherPanel      weatherPanel                  = null;    // WeatherPanel to update
 	private       Provider          outsideScheduleProvider       = null;    // optional, other provider used to decide to show outOfSchedule data

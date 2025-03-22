@@ -50,6 +50,8 @@ class Configuration {
 		}
 		
 		log.config("configuration file was read successfully");
+		log.config(("running on Raspberry: "+isRunningOnRaspberry()));
+		
 		return true;
 	}
 
@@ -61,7 +63,7 @@ class Configuration {
 		boolean runningOnRaspberry = false;
 		
 		if(System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("linux")
-				&& System.getProperty("os.arch").toLowerCase(Locale.ENGLISH).contains("arm")) {
+				&& (System.getProperty("os.arch").toLowerCase(Locale.ENGLISH).contains("arm") || System.getProperty("os.arch").toLowerCase(Locale.ENGLISH).contains("aarch64"))) {
 			runningOnRaspberry = true;
 		}
 		

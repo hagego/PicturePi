@@ -10,6 +10,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -31,6 +33,7 @@ import org.jsoup.select.Elements;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 
@@ -69,7 +72,61 @@ public class PictureProvider extends Provider {
 		if(lastDate==null || lastDate.isEqual(today)==false) {
 			// new day started. Build new list of pictures to be displayed today
 			log.fine("new day started: "+today);
-			imageList = createPictureList();
+
+			boolean legacyMode = Configuration.getConfiguration().getValue("PicturePanel", "legacyMode", false);
+			if(legacyMode) {
+				log.fine("legacy mode enabled");
+
+				imageList = createPictureList();
+			}
+			else {
+				log.fine("legacy mode disabled");
+
+				// get number of pictures to display per day
+				int picturesPerDay = Configuration.getConfiguration().getValue("PicturePanel", "picturesPerDay", 100);
+				log.fine("pictures to display per day: "+picturesPerDay);
+
+				// collect all pictures and map them to their date
+				createPictureDateList();
+				imageList.clear();
+
+				// add all pictures taken on todays day, at any year
+				List<File> pictureListOfDay = getPicturesOfDay(LocalDate.now());
+				int picturesOfDay = pictureListOfDay.size();
+				log.fine("found "+picturesOfDay+" pictures taken today");
+				imageList.addAll(pictureListOfDay);
+
+				// add all pictures taken in the month, but not on todays day
+				List<File> pictureListOfMonth = getPicturesOfMonth(LocalDate.now());
+				int picturesOfMonth = pictureListOfMonth.size();
+				log.fine("found "+picturesOfMonth+" pictures taken this month");
+				imageList.addAll(pictureListOfMonth);
+
+				if(picturesOfDay+picturesOfMonth<picturesPerDay) {
+					// add pictures from other months until we have enough
+					int picturesFromOtherMonths = picturesPerDay - picturesOfDay - picturesOfMonth;
+					log.fine("adding "+picturesFromOtherMonths+" pictures from other months");
+
+					// get all pictures from the list
+					List<File> pictureList = pictureDateList.stream().map(p -> p.file).collect(Collectors.toList());
+					Collections.shuffle(pictureList);
+
+					// add pictures from the list
+					for(File file:pictureList) {
+						if(imageList.size()>=picturesPerDay) {
+							break;
+						}
+						if(pictureListOfDay.contains(file)==false && pictureListOfMonth.contains(file)==false) {
+							imageList.add(file);
+						}
+					}
+				}
+
+
+
+				pictureDateList.forEach(f -> imageList.add(f.file));
+			}
+			
 	    	
 	    	// randomize list and reset iterator to start
 	    	imageIterator = imageList.iterator();
@@ -125,9 +182,10 @@ public class PictureProvider extends Provider {
 	        String year = "";
 	        try {
 				Metadata metadata = ImageMetadataReader.readMetadata(file);
-				ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+				ExifIFD0Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+
 				if(directory!=null) {
-					Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+					Date date = directory.getDate(ExifIFD0Directory.TAG_DATETIME);
 					if(date!=null) {
 						year = new SimpleDateFormat("yyyy").format(date);
 					}
@@ -148,6 +206,105 @@ public class PictureProvider extends Provider {
 			log.severe("image list is empty");
 		}
 	}
+
+	/**
+	 * creates a list of PictureDate objects of all pictures in the specified directory
+	 */
+	void createPictureDateList() {
+		// empty list
+		pictureDateList.clear();
+
+		log.fine("creating pictureDate list");
+		
+		String rootDirName = Configuration.getConfiguration().getValue("PicturePanel", "rootDir", null);
+		
+		if(rootDirName==null) {
+			log.severe("No picture rootDir specified - no pictures to display");;
+			return;
+		}
+		
+		File rootDir = new File(rootDirName);
+		log.config("picture root directory: "+rootDir.getAbsolutePath());
+	    if(!rootDir.isDirectory()) {
+	    	log.severe("root dir is not a directory: "+rootDir.getAbsolutePath());
+	    	return;
+	    }
+	    
+		// get array of all jpeg files in the picture diretory
+    	String files[] = rootDir.list(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				 return (name.endsWith("jpg") || name.endsWith("jpeg"));
+			}
+    	});
+    	
+    	if(files==null) {
+    		log.severe("Unable to retrieve files from picture directory - null returned");
+			return;
+    	}
+		log.fine("found "+files.length+" files in picture directory "+rootDir);
+
+		// create PictureDate objects for each file
+		for(String file:files) {
+			PictureDate pictureDate = new PictureDate();
+			pictureDate.file = new File(rootDir,file);
+
+			// get picture data from EXIF data
+			try {
+				Metadata metadata = ImageMetadataReader.readMetadata(pictureDate.file);
+				ExifIFD0Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+
+				if(directory!=null) {
+					Date date = directory.getDate(ExifIFD0Directory.TAG_DATETIME);
+					if(date!=null) {	
+						log.finest(file+" has date set to: "+new SimpleDateFormat("yyyy.MM.dd").format(date));
+
+						LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+						pictureDate.date = localDate;
+						pictureDateList.add(pictureDate);
+					}
+					else {
+						log.warning(file+": reading metadata: date is null");
+					}
+				}
+				else {
+					log.warning(file+": reading metadata: directory is null");
+				}
+			} catch (ImageProcessingException  e) {
+				log.warning("Unable to access image file to read metadata: "+file);
+			}
+			catch (IOException e) {
+				log.warning("Unable to access image file to read metadata: "+file);
+			}
+		}
+	}
+
+	/**
+	 * returns a list of PictureDate objects that maps all pictures to their date
+	 * @return list of PictureDate objects
+	 */
+	List<PictureDate> getPictureDateList() {
+		return pictureDateList;
+	}
+
+	/**
+	 * returns a list of pictures taken on the day and month of the specified date, but in any year
+	 * @param  date date to get pictures for
+	 * @return list of pictures taken on the day and month of the specified date, but in any year
+	 */
+	List<File> getPicturesOfDay(LocalDate date) {
+		return pictureDateList.stream().filter(p -> p.date.getMonth().equals(date.getMonth()) && p.date.getDayOfMonth()==date.getDayOfMonth()).map(p -> p.file).collect(Collectors.toList());
+	}
+
+	/**
+	 * returns a list of pictures taken in the month of the specified date, in any year, but at a different day
+	 * @param  date date to get pictures for
+	 * @return list of pictures taken in the month of the specified date, in any year, but at a different day
+	 */
+	List<File> getPicturesOfMonth(LocalDate date) {
+		return pictureDateList.stream().filter(p -> p.date.getMonth().equals(date.getMonth()) && p.date.getDayOfMonth()!=date.getDayOfMonth()).map(p -> p.file).collect(Collectors.toList());
+	}
+	 
 	
 	/**
 	 * creates the list of pictures for today
@@ -318,4 +475,13 @@ public class PictureProvider extends Provider {
 	private LocalDate        lastDate  = null;                      // date when last picture list was built
 	private List<File>       imageList = new LinkedList<File>();    // list with filenames of images to display
 	private Iterator<File>   imageIterator;                         // iterator over image list
+
+	// local class to associate a picture with a date
+	private class PictureDate {
+		File      file;
+		LocalDate date;
+	}
+
+	private List<PictureDate> pictureDateList = new LinkedList<PictureDate>();
+
 }

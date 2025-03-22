@@ -4,11 +4,18 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import org.knowm.xchart.XChartPanel;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
+import org.knowm.xchart.XYSeries;
+import org.knowm.xchart.XYSeries.XYSeriesRenderStyle;
+import org.knowm.xchart.style.Styler.LegendPosition;
 
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -35,32 +42,43 @@ class WeatherPanel extends Panel {
 		//add(Box.createRigidArea(new Dimension(0,100)));		
 		add(Box.createVerticalGlue());
 		
-		labelTemperature             = new JLabel ("Aktuell: --");
-		labelTemperatureMin          = new JLabel ("Tiefst: --");
-		labelForecastDate            = new JLabel ("Vorhersage für: --");
-		labelForecastSummary         = new JLabel("Vorhersage");
-		labelForecastIcon            = new JLabel();
-		labelForecastHighTemperature = new JLabel("Höchst: --");
+		labelTemperature              = new JLabel("Aktuell: --");
+		labelForecastSummary          = new JLabel("Vorhersage");
+		labelForecastIcon             = new JLabel();
+		labelForecastTemperatureRange = new JLabel("Temperatur --");
 		
 		Font fontText        = new Font(Font.SANS_SERIF, Font.PLAIN, fontSizeText);
 		Font fontTemperature = new Font(Font.SANS_SERIF, Font.PLAIN, fontSizeTemperature);
 		
+		// measured temperature
 		labelTemperature.setFont(fontTemperature);
 		labelTemperature.setForeground(Color.MAGENTA.darker().darker());
 		labelTemperature.setAlignmentX(CENTER_ALIGNMENT);
 		add(labelTemperature);
-		
-		labelTemperatureMin.setFont(fontTemperature);
-		labelTemperatureMin.setForeground(Color.MAGENTA.darker().darker());
-		labelTemperatureMin.setAlignmentX(CENTER_ALIGNMENT);
-		add(labelTemperatureMin);
+
+		// chart with temperature over day
+		temperatureChart = new XYChartBuilder().width(getWidth()).height(200).title("Tagesverlauf").xAxisTitle("Zeit").yAxisTitle("Temp").build();
+
+		// Customize Chart
+		temperatureChart.getStyler().setLegendPosition(LegendPosition.InsideNE);
+		temperatureChart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Line);
+		temperatureChart.getStyler().setPlotBackgroundColor(Color.BLACK);
+		temperatureChart.getStyler().setChartBackgroundColor(Color.BLACK);
+		temperatureChart.getStyler().setChartFontColor(Color.RED);
+		temperatureChart.getStyler().setChartTitleBoxVisible(false);
+		temperatureChart.getStyler().setPlotGridLinesVisible(false);
+		temperatureChart.getStyler().setAxisTickLabelsColor(Color.WHITE);
+
+		// Dummy data
+		XYSeries series = temperatureChart.addSeries(chartName,new double[] { 0, 3, 5, 7, 9},new double[]{0,10,20,10,0});
+		series.setLineColor(Color.RED);
+		series.setMarkerColor(Color.YELLOW);
+
+       	// add to panel
+        JPanel chartPanel = new XChartPanel<XYChart>(temperatureChart);
+        add(chartPanel);
 		
 		add(Box.createVerticalGlue());
-		
-		labelForecastDate.setFont(fontText);
-		labelForecastDate.setForeground(Color.MAGENTA.darker().darker());
-		labelForecastDate.setAlignmentX(CENTER_ALIGNMENT);
-		//add(labelForecastDate);
 		
 		labelForecastSummary.setFont(fontText);
 		labelForecastSummary.setForeground(Color.CYAN.darker().darker());
@@ -72,32 +90,28 @@ class WeatherPanel extends Panel {
 		
 		add(Box.createVerticalGlue());
 		
-		labelForecastHighTemperature.setFont(fontTemperature);
-		labelForecastHighTemperature.setForeground(Color.CYAN.darker().darker());
-		labelForecastHighTemperature.setAlignmentX(CENTER_ALIGNMENT);
-		add(labelForecastHighTemperature);
+		labelForecastTemperatureRange.setFont(fontText);
+		labelForecastTemperatureRange.setForeground(Color.CYAN.darker().darker());
+		labelForecastTemperatureRange.setAlignmentX(CENTER_ALIGNMENT);
+		add(labelForecastTemperatureRange);
 		
 		add(Box.createVerticalGlue());
-		
+
 		log.fine("WeatherPanel created");
 	}
 	
 	@Override
 	void setColorDark() {
 		labelTemperature.setForeground(Color.MAGENTA.darker().darker());
-		labelTemperatureMin.setForeground(Color.MAGENTA.darker().darker());
-		labelForecastDate.setForeground(Color.MAGENTA.darker().darker());
 		labelForecastSummary.setForeground(Color.CYAN.darker().darker());
-		labelForecastHighTemperature.setForeground(Color.CYAN.darker().darker());
+		labelForecastTemperatureRange.setForeground(Color.CYAN.darker().darker());
 	}
 	
 	@Override
 	void setColorBright() {
 		labelTemperature.setForeground(Color.MAGENTA.brighter().brighter());
-		labelTemperatureMin.setForeground(Color.MAGENTA.brighter().brighter());
-		labelForecastDate.setForeground(Color.MAGENTA.brighter().brighter());
 		labelForecastSummary.setForeground(Color.CYAN.brighter().brighter());
-		labelForecastHighTemperature.setForeground(Color.CYAN.brighter().brighter());
+		labelForecastTemperatureRange.setForeground(Color.CYAN.brighter().brighter());
 	}
 	
 	@Override
@@ -112,7 +126,12 @@ class WeatherPanel extends Panel {
 	void setTemperature(double temperature) {
 		EventQueue.invokeLater( new Runnable() {
 	        public void run() {
-	        	labelTemperature.setText(String.format("Aktuell: %.0f°C", temperature));
+				if(temperatureMin!=null && temperatureMax!=null) {
+					labelTemperature.setText(String.format("Aktuell: %.0f C (heute %.0f bis %.0f C)", temperature,temperatureMin,temperatureMax));
+				}
+				else {
+	        		labelTemperature.setText(String.format("Aktuell: %.0fÂ°C", temperature));
+				}
 	        }
 	    } );
 	}
@@ -122,26 +141,38 @@ class WeatherPanel extends Panel {
 	 * @param temperatureMin minimum temperature
 	 */
 	void setTemperatureMin(double temperature) {
-		EventQueue.invokeLater( new Runnable() {
-	        public void run() {
-	        	labelTemperatureMin.setText(String.format("Tiefst: %.0f°C", temperature));
-	        }
-	    } );
+		temperatureMin = temperature;
+	}
+
+	/**
+	 * sets the maximum temperature of the day
+	 * @param temperatureMax maximum temperature
+	 */
+	void setTemperatureMax(double temperature) {
+		temperatureMax = temperature;
+	}
+
+	void updateTemperatureChart(double[] time, double[] temperature) {
+		temperatureChart.updateXYSeries(chartName, time, temperature, null);
 	}
 	
 	/**
 	 * sets the forecast for the day
 	 * @param date             date of the forecast
 	 * @param summary          summary text
+	 * @param temperatureLow   day low temperature
 	 * @param temperatureHigh  day high temperature
 	 * @param icon             forecast icon
 	 */
-	void setForecast(Date date,String summary,double temperatureHigh,ImageIcon icon) {
+	void setForecast(Date date,String summary,double temperatureLow,double temperatureHigh,ImageIcon icon) {
+		log.fine(String.format("set forecast received for date %s: %s %.0f...%.0f",date,summary,temperatureLow,temperatureHigh));
+
 		EventQueue.invokeLater( new Runnable() {
 	        public void run() {
-	        	labelForecastDate.setText("Vorhersage für den "+new SimpleDateFormat("dd.MM.yyyy").format(date)+":");
-	        	labelForecastSummary.setText(summary);
-	        	labelForecastHighTemperature.setText(String.format("Höchst: %.0f°C",temperatureHigh));
+	        	labelForecastSummary.setText("Vorhersage: "+summary);
+				String text = String.format("Temperatur %.1f bis %.1f C",temperatureLow,temperatureHigh);
+				log.fine("setting temperature range text: "+text);
+	        	labelForecastTemperatureRange.setText(text);
 	        	if(icon!=null) {
 	        		labelForecastIcon.setIcon(icon);
 	        	}
@@ -153,13 +184,17 @@ class WeatherPanel extends Panel {
 	//
 	// private members
 	// 
-	private static final long serialVersionUID = 8937994138265702017L;
-	private static final Logger   log     = Logger.getLogger( WeatherPanel.class.getName() );
+	private static final long   serialVersionUID = 8937994138265702017L;
+	private static final Logger log              = Logger.getLogger( WeatherPanel.class.getName() );
+	private static final String chartName		 = "Terrasse";
+
+	private Double temperatureMin = null;         // min temperature of day
+	private Double temperatureMax = null;         // max temperature of day
 	
-	private JLabel labelTemperature;             // label to display actual measured temperature
-	private JLabel labelTemperatureMin;          // label to display minimum measured temperature
-	private JLabel labelForecastDate;            // label to display date of forecast
-	private JLabel labelForecastSummary;         // label to display forecast summary
-	private JLabel labelForecastIcon;            // label to display forecast icon
-	private JLabel labelForecastHighTemperature; // label to display high temperature
+	private JLabel labelTemperature;              // label to display actual measured temperature
+	private JLabel labelForecastSummary;          // label to display forecast summary
+	private JLabel labelForecastIcon;             // label to display forecast icon
+	private JLabel labelForecastTemperatureRange; // label to display high temperature
+
+	final XYChart temperatureChart;               // chart to display temperature over day
 }

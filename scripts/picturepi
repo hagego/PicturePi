@@ -1,7 +1,16 @@
+#!/bin/bash
 # run script for PicturePi
 # place in /opt/picturepi/bin
-/usr/bin/sudo /bin/mkdir -p /var/log/picturepi
-/usr/bin/sudo /bin/chown picturepi:picturepi /var/log/picturepi
 
-# use sudo to avoid issue of WiringPi (hangs) during autostart
-sudo /usr/bin/java -classpath '/opt/picturepi/lib/javax.json-api.jar:/opt/picturepi/lib/javax.json.jar:/opt/picturepi/lib/org.eclipse.paho.client.mqttv3.jar:/opt/picturepi/lib/ini4j/*:/opt/picturepi/lib/pi4j/lib/*:/opt/picturepi/lib/calendar/*:/opt/picturepi/lib/calendar/libs/*:/opt/picturepi/lib/metadata-extractor.jar:/opt/picturepi/lib/xmpcore.jar:/opt/picturepi/bin/picturepi.jar' picturepi/PicturePi &
+# check if PicturePi is already running and kill it
+PID=$(ps -ef | grep picturepi.jar | grep -v grep | awk '{print $2}')
+if [ -n "$PID" ]; then
+  kill $PID
+fi
+
+# hide mouse cursor (unclutter must be installed  separately)
+/usr/bin/unclutter -display :0 -idle 0
+
+#!/bin/bash
+export DISPLAY=:0
+/usr/bin/java  -classpath '/opt/picturepi/bin/picturepi.jar' picturepi/PicturePi &

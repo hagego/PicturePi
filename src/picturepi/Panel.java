@@ -22,7 +22,13 @@ public abstract class Panel extends JPanel {
 		activeViews   = new HashSet<>();
 		
 		provider.setPanel(this);
+		
+
 	}
+	
+	
+
+
 	
 	/**
 	 * creates a Panel object from the class name
@@ -107,7 +113,7 @@ public abstract class Panel extends JPanel {
 	}
 	
 	/**
-	 * forces the provider to do a data update immediately (in the background)
+	 * forces the data provider to do a data update immediately (in the background)
 	 */
 	void forceUpdate() {
 		Thread t = new Thread(new Runnable() {
@@ -138,7 +144,7 @@ public abstract class Panel extends JPanel {
 	abstract void setColorBright();
 	
 	/**
-	 * @return if this panel has data to display
+	 * @return true if this panel has data to display, false otherwise
 	 */
 	abstract boolean hasData();
 	

@@ -24,6 +24,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 
 /**
  * Data provider for SummaryPanel.
@@ -32,7 +33,7 @@ import javax.json.JsonReader;
  * - traffic information to a specified destination
  * - Garbage Collection of the day
  */
-public class SummaryProvider extends Provider {
+public class SummaryProvider extends Provider implements IMqttMessageListener {
 	
 	// nested class used as a structure to store route information
 	class RouteInformation {
@@ -67,6 +68,13 @@ public class SummaryProvider extends Provider {
 		// get information about route 1 from configuration file
 		routeInformation1 = getRouteInformation(1);
 		routeInformation2 = getRouteInformation(2);
+
+		// subscribe to MQTT topics to retrieve measured temperature updates
+		mqttTopicTemperature = Configuration.getConfiguration().getValue(SummaryPanel.class.getSimpleName(), mqttTopicTemperatureConfigKey, null);
+		if(mqttTopicTemperature != null) {
+			log.info("subscribing for temperature, MQTT key="+mqttTopicTemperature);
+			MqttClient.getMqttClient().subscribe(mqttTopicTemperature, this);
+		}
 	}
 
 	@Override
@@ -87,6 +95,32 @@ public class SummaryProvider extends Provider {
 				log.severe("Panel is not of class SummaryPanel. Disabling updates.");
 				
 				return;
+			}
+		}
+
+		// tasks done only oncer per day
+		if(lastFetchDate==null || lastFetchDate.compareTo(LocalDate.now())!=0) {
+			lastFetchDate = LocalDate.now();
+			
+			log.fine("fetching data for new day");
+			// caldendar entries
+			String calendarName = Configuration.getConfiguration().getValue("SummaryPanel", "googleCalendarName", null);
+			if(calendarName!=null) {
+				GoogleCalendar googleCalendar = new GoogleCalendar();
+				if( googleCalendar.connect() == false) {
+					// connect failed
+					log.severe("Connection to Google Calendar failed");
+					googleCalendar = null;
+				}
+				else {
+					List<String> calendarEntries = googleCalendar.getCalendarEntriesForToday(calendarName);
+					if(calendarEntries!=null && calendarEntries.size()>0) {
+						myPanel.setCalendarEntries(String.join(",", calendarEntries));
+					}
+					else {
+						myPanel.setCalendarEntries("--");
+					}
+				}
 			}
 		}
 		
@@ -128,13 +162,11 @@ public class SummaryProvider extends Provider {
 							routeInformation2.travelTimeNoTraffic/60));
 				}
 			}
-			
-			routeRefreshCounter++;
-			if(routeRefreshCounter>routeRefreshDivider) {
-				routeRefreshCounter=0;
-			}
 		}
-
+		routeRefreshCounter++;
+		if(routeRefreshCounter>routeRefreshDivider) {
+			routeRefreshCounter=0;
+		}
 	}
 	
 	/**
@@ -357,7 +389,7 @@ public class SummaryProvider extends Provider {
 		String url = null;
 		
 		// get routing start/end locations
-		url = String.format("%s/%f%%2C%f%%3A%f%%2C%f/json?", URL_BASE,
+		url = String.format(Locale.US,"%s/%f%%2C%f%%3A%f%%2C%f/json?", URL_BASE,
 				routeInformation.start.latitude,routeInformation.start.longitude,
 				routeInformation.end.latitude,routeInformation.end.longitude);
 
@@ -404,7 +436,7 @@ public class SummaryProvider extends Provider {
 			JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(response.toString()));
 			JsonObject jsonObject    = reader.readObject();
 			
-			log.fine("Json response: "+jsonObject);
+			log.finest("Json response: "+jsonObject);
 			
 			return jsonObject;
 		} catch (MalformedURLException e) {
@@ -418,6 +450,17 @@ public class SummaryProvider extends Provider {
 		}
 	}
 
+	@Override
+	public void messageArrived(String topic, org.eclipse.paho.client.mqttv3.MqttMessage message) throws Exception {
+		log.fine("message arrived on topic "+topic);
+		
+		if(mqttTopicTemperature!=null && topic.equals(mqttTopicTemperature)) {
+			log.fine("message is temperature update, content="+message.toString());
+			myPanel.setTemperature(Double.parseDouble(message.toString()));
+			log.fine("temperature set to "+message.toString());
+		}
+	}
+
 	
 	//
 	// private data
@@ -428,10 +471,17 @@ public class SummaryProvider extends Provider {
 	
 	// section name in configuration file
 	private final String    CONFIG_SECTION = "SummaryPanel";
+
+	private final String	mqttTopicTemperatureConfigKey    = "mqttTopicTemperature";      // key in config file for MQTT topic for temperature
+
+	private       String            mqttTopicTemperature;  									// MQTT topic for temperature updates
 	
 	// use a hard-coded refresh interval
-	private final static int refreshInterval = 60; // seconds
+	private final static int refreshInterval = 60; // in seconds
 	
+	// date of last fetch operation
+	private LocalDate lastFetchDate = null;
+
 	// refresh divider for route data refresh from TomTom
 	private final static int routeRefreshDivider = 5;
 	private int routeRefreshCounter = 0;

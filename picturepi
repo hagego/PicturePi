@@ -1,0 +1,3 @@
+
+
+/usr/bin/java -Dfile.encoding=UTF-8 -classpath 'target/picturepi.jar' picturepi/PicturePi &

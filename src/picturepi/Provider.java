@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 public abstract class Provider implements Runnable {
 
 	/**
+	 * constructor
 	 * @param sleepTimeSeconds time in seconds that the provider thread will sleep
 	 *                         between checking for updated data by calling fetchData
 	 *                         after it was started. If set to 0, fetchData is only
@@ -28,7 +29,7 @@ public abstract class Provider implements Runnable {
 	 * gets called after all panels and provides got instantiated
 	 * can be overridden to do additional initialization work
 	 */
-	void init() {
+	protected void init() {
 	}
 	
 	
@@ -97,6 +98,14 @@ public abstract class Provider implements Runnable {
 	 */
 	protected void setSleepTime(int sleepTimeSeconds) {
 		this.sleepTimeSeconds = sleepTimeSeconds;
+	}
+
+	/**
+	 * gets the panel belonging to this provider
+	 * @return panel belonging to this provider
+	 */
+	protected Panel getPanel() {
+		return panel;
 	}
 	
 	/**

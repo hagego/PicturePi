@@ -16,13 +16,13 @@ public class SummaryPanel extends Panel {
 		
 		setLayout(new GridBagLayout());
 		
-		Font font   = new Font(Font.SANS_SERIF, Font.BOLD, 20);
+		Font font   = new Font(Font.SANS_SERIF, Font.BOLD, 40);
 		Color color = Color.BLACK;
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.insets = new Insets(10, 10, 10, 10);
 		constraints.anchor = GridBagConstraints.WEST;
 		
-		// Date/Time
+		// Date
 		JLabel labelDateHeader = new JLabel("Datum");
 		constraints.gridx = 0;
 		constraints.gridy = 0;
@@ -35,6 +35,7 @@ public class SummaryPanel extends Panel {
 		labelDate.setForeground(color);
 		add(labelDate,constraints);
 		
+		// Time
 		JLabel labelTimeHeader = new JLabel("Zeit");
 		constraints.gridx = 0;
 		constraints.gridy++;
@@ -46,6 +47,21 @@ public class SummaryPanel extends Panel {
 		labelTime.setFont(font);
 		labelTime.setForeground(color);
 		add(labelTime,constraints);
+
+		// temperature
+		JLabel labelTemperatureHeader = new JLabel("Temperatur");
+		constraints.gridx = 0;
+		constraints.gridy++;
+		labelTemperatureHeader.setFont(font);
+		labelTemperatureHeader.setForeground(color);
+		add(labelTemperatureHeader,constraints);
+
+		constraints.gridx = 1;
+		labelTemperature.setFont(font);
+		labelTemperature.setForeground(color);
+		labelTemperature.setText("--");
+		add(labelTemperature,constraints);
+
 		
 		// route 1 data
 		constraints.gridx = 0;
@@ -70,6 +86,19 @@ public class SummaryPanel extends Panel {
 		labelRoute2Data.setFont(font);
 		labelRoute2Data.setForeground(color);
 		add(labelRoute2Data,constraints);
+
+		// calendar entries
+		constraints.gridx = 0;
+		constraints.gridy++;
+		JLabel labelCalendarEntriesHeader = new JLabel("Kalender");
+		labelCalendarEntriesHeader.setFont(font);
+		labelCalendarEntriesHeader.setForeground(color);
+		add(labelCalendarEntriesHeader,constraints);
+
+		constraints.gridx = 1;
+		labelCalendarEntries.setFont(font);
+		labelCalendarEntries.setForeground(color);
+		add(labelCalendarEntries,constraints);
 		
 		log.fine("SummaryPanel created");
 	}
@@ -95,6 +124,10 @@ public class SummaryPanel extends Panel {
 		labelDate.setText(date);
 		labelTime.setText(time);
 	}
+
+	void setTemperature(double temperature) {
+		labelTemperature.setText(String.format("%.1f C",temperature));
+	}
 	
 	void setRoute1DataStatic(String route1Name) {
 		labelRoute1Name.setText(route1Name);
@@ -112,6 +145,10 @@ public class SummaryPanel extends Panel {
 		labelRoute2Data.setText(route2Data);
 	}
 
+	void setCalendarEntries(String calendarEntries) {
+		labelCalendarEntries.setText(calendarEntries);
+	}
+
 
 	//
 	// private members
@@ -120,10 +157,12 @@ public class SummaryPanel extends Panel {
 	
 	private final Logger    log = Logger.getLogger( this.getClass().getName() );
 	
-	private JLabel labelDate       = new JLabel();  // label displaying the date
-	private JLabel labelTime       = new JLabel();  // label displaying the time
-	private JLabel labelRoute1Name = new JLabel();  // label displaying the name for route 1 
-	private JLabel labelRoute1Data = new JLabel();  // label displaying dynamic information for route 1
-	private JLabel labelRoute2Name = new JLabel();  // label displaying the name for route 2 
-	private JLabel labelRoute2Data = new JLabel();  // label displaying dynamic information for route 2
+	private JLabel labelDate            = new JLabel();  // label displaying the date
+	private JLabel labelTime            = new JLabel();  // label displaying the time
+	private JLabel labelTemperature     = new JLabel();  // label displaying the temperature
+	private JLabel labelRoute1Name      = new JLabel();  // label displaying the name for route 1 
+	private JLabel labelRoute1Data      = new JLabel();  // label displaying dynamic information for route 1
+	private JLabel labelRoute2Name      = new JLabel();  // label displaying the name for route 2 
+	private JLabel labelRoute2Data      = new JLabel();  // label displaying dynamic information for route 2
+	private JLabel labelCalendarEntries = new JLabel();  // label displaying calendar entries
 }

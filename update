@@ -1,0 +1,15 @@
+#!/bin/bash
+# Update the picturepi.jar on the Raspberry Pi
+SSHKEY=$HOME/Documents/Zertifikate/sshkey_generic_raspberry.private-ssh
+LOGIN=picturepi@picturepi.local
+TARGET=$LOGIN:/opt/picturepi
+
+# build the jar and copy it to the Raspberry Pi
+mvn install
+scp -i $SSHKEY  target/picturepi.jar $TARGET/bin
+
+# update Google calendar credential file
+scp -i $SSHKEY res/google/StoredCredential $LOGIN:/etc/picturepi/google
+
+# restart PicturePi
+ssh -i $SSHKEY $LOGIN "/opt/picturepi/bin/picturepi"

@@ -3,6 +3,7 @@ package picturepi;
 import java.awt.EventQueue;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
+import java.awt.event.MouseListener;
 
 
 /*
@@ -10,7 +11,8 @@ import javax.swing.JFrame;
  */
 public class MainWindow implements Runnable {
 
-	public MainWindow() {
+	public MainWindow(MouseListener mouseListener) {
+		this.mouseListener = mouseListener;
 		configuration = Configuration.getConfiguration();
 	}
 	
@@ -58,6 +60,8 @@ public class MainWindow implements Runnable {
 		int w=mainFrame.getWidth();
 		int h=mainFrame.getHeight();
 		log.config("display size: width="+w+" height="+h);
+		
+		mainFrame.addMouseListener(mouseListener);
 	}
 	
 	/**
@@ -85,5 +89,6 @@ public class MainWindow implements Runnable {
 	private              int      width        = 1280;
 	private              int      height       = 800;
 	
-	private              JFrame   mainFrame;
+	private              JFrame        mainFrame;
+	private 			 MouseListener mouseListener;
 }

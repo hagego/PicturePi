@@ -1,7 +1,9 @@
 package picturepi;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -15,14 +17,16 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 
 /**
- * MQTT Client
+ * MQTT Client (Singleton)
  */
-public class MqttClient implements MqttCallbackExtended{
+public class MqttClient implements MqttCallbackExtended, IMqttMessageListener {
 	
 	/**
 	 * private constructor
 	 * @param brokerAddress MQTT broker address
 	 * @param brokerPort    MQTT broker port
+	 * @param keepalive     keepalive interval
+	 * @param clientId      client ID
 	 */
 	private MqttClient(String brokerAddress, int brokerPort, int keepalive, String clientId) {
 			try {
@@ -39,7 +43,7 @@ public class MqttClient implements MqttCallbackExtended{
 				mqttClient.setCallback(this);
 				
 				// maintain list of topics to subscribe for automatic reconnect
-				topicList = new LinkedList<Topic>();
+				topicList = new HashMap<String,Set<IMqttMessageListener>>();
 				
 				log.fine("Connecting to MQTT broker "+brokerAddress);
 				mqttClient.connect(connectOptions);
@@ -63,13 +67,19 @@ public class MqttClient implements MqttCallbackExtended{
 						                   Configuration.getConfiguration().getValue("mqtt", "keepalive", 900),
 						                   Configuration.getConfiguration().getValue("global", "name","PicturePi"));
 			}
+			else {
+				log.severe("No MQTT broker specified in configuration");
+			}
 		}
 		
 		return theObject;
 	}
 	
 	/**
-	 * subscribes for an MQTT topic
+	 * subscribes a listener for an MQTT topic
+	 * This class manages the subscription and will automatically subscribe again if the connection is lost
+	 * and re-established. It allows to subscribe multiple listeners for the same topic.
+	 * 
 	 * @param topicName  topic to subscribe
 	 * @param listener   listener objects for the callbacl
 	 */
@@ -80,23 +90,19 @@ public class MqttClient implements MqttCallbackExtended{
 			return;
 		}
 		log.fine("subscribing for MQTT topic: "+topicName);
-		
-		// add to list of topics in case we have to reconnect
-		Topic topic = new Topic();
-		topic.topic    = topicName;
-		topic.listener = listener;
 
-		if(topicList.contains(topic)) {
-			log.warning("MQTT subscription of topic "+topicName+": topic already subscribed");
+		// get set of listeners for this topic and create if not existing
+		Set<IMqttMessageListener> listenerSet = topicList.get(topicName);
+		if(listenerSet==null) {
+			listenerSet = new HashSet<IMqttMessageListener>();
+			topicList.put(topicName, listenerSet);
 		}
-		else {
-			topicList.add(topic);
-		}
+		listenerSet.add(listener);
 		
-		// subscribe if we are currently connected
+		// subscribe myelf as listener if we are currently connected
 		if(isConnected.get()) {
 			try {
-				mqttClient.subscribe(topicName,0,listener);
+				mqttClient.subscribe(topicName,0,this);
 			} catch (MqttException e) {
 				log.severe("MQTT subscribe for topic "+topicName+" failed: "+e.getMessage());
 			}
@@ -135,6 +141,18 @@ public class MqttClient implements MqttCallbackExtended{
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		log.fine("MQTT message arrived: topic="+topic);
 		log.finest("MQTT message arrived: topic="+topic+" content="+message);
+
+		// get listeners for this topic and forward message
+		Set<IMqttMessageListener> listenerSet = topicList.get(topic);
+		if(listenerSet!=null) {
+			for(IMqttMessageListener listener:listenerSet) {
+				log.finest("forwarding message to listener");
+				listener.messageArrived(topic, message);
+			}
+		}
+		else {
+			log.severe("No listener found for MQTT topic "+topic);
+		}
 	}
 
 	@Override
@@ -143,14 +161,11 @@ public class MqttClient implements MqttCallbackExtended{
 		log.info("connection to MQTT broker completed. reconnect="+reconnect);
 
 		// in case of reconnect loop over all topics and subscribe again
-		for(Topic topic:topicList) {
-			log.info("(re-)subscribing to MQTT topic "+topic.topic);
-			
-			// subscribe
+		for(String topic:topicList.keySet()) {
 			try {
-				mqttClient.subscribe(topic.topic,0,topic.listener);
+				mqttClient.subscribe(topic,0,this);
 			} catch (MqttException e) {
-				log.severe("MQTT subscribe for topic "+topic.topic+" failed: "+e.getMessage());
+				log.severe("MQTT subscribe for topic "+topic+" failed: "+e.getMessage());
 			}
 		}
 	}
@@ -161,24 +176,9 @@ public class MqttClient implements MqttCallbackExtended{
 	private static final Logger log = Logger.getLogger( MqttClient.class.getName() );
 	
 	private static  MqttClient                                     theObject = null;
-	private         org.eclipse.paho.client.mqttv3.MqttAsyncClient mqttClient;
+	private         org.eclipse.paho.client.mqttv3.MqttAsyncClient mqttClient;	// the MQTT client
 	
-	// private class to hold topics to subscribe together with their listeners
-	private class Topic {
-		String               topic;
-		IMqttMessageListener listener;
-		
-		@Override
-		public boolean equals(Object obj) {
-			if(obj==null) {
-				return false;
-			}
-			Topic t = (Topic)obj;
-			return topic.equals(t.topic) && listener.equals(t.listener);
-		}
-	};
-	
-	private List<Topic>   topicList;              // list of subsribed topics
-	private AtomicBoolean isConnected;            // maintains if client is currently connected ot nor
+	private Map<String,Set<IMqttMessageListener>>   topicList;     // maps topics to listeners
+	private AtomicBoolean isConnected;                             // maintains if client is currently connected ot nor
 }
 

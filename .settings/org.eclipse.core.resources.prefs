@@ -1,4 +1,8 @@
 eclipse.preferences.version=1
+encoding//res/google=Cp1252
+encoding//src/picturepi/WeatherPanel.java=UTF-8
+encoding//src/picturepi/WeatherProvider.java=UTF-8
 encoding/<project>=Cp1252
+encoding/res=Cp1252
 encoding/src=Cp1252
 encoding/test=Cp1252
