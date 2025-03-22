@@ -68,3 +68,4 @@ $RECYCLE.BIN/
 /target/
 /install_schlafzimmer
 /install_wohnzimmer
+res/google/GoogleCalendarCredentials.json
