@@ -445,7 +445,7 @@ public class PicturePi implements IMqttMessageListener,Runnable,MouseListener {
 
 					if(displayOnCounter<=0) {
 						// motion detected period end
-						log.fine("motion detected period end");
+						log.fine("motion detected period end. Disabling display");
 						motionDetectedPeriod = false;
 						
 						if(screenType==ScreenType.DISPLAY) {
