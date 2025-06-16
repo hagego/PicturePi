@@ -454,7 +454,7 @@ public class SummaryProvider extends Provider implements IMqttMessageListener {
 	public void messageArrived(String topic, org.eclipse.paho.client.mqttv3.MqttMessage message) throws Exception {
 		log.fine("message arrived on topic "+topic);
 		
-		if(mqttTopicTemperature!=null && topic.equals(mqttTopicTemperature)) {
+		if(myPanel!=null && mqttTopicTemperature!=null && topic.equals(mqttTopicTemperature)) {
 			log.fine("message is temperature update, content="+message.toString());
 			myPanel.setTemperature(Double.parseDouble(message.toString()));
 			log.fine("temperature set to "+message.toString());

@@ -58,6 +58,26 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 		
 		log.fine("WeatherProvider created");
 	}
+
+		/**
+	 * returns the OpenWeatherMap API Key
+	 * @return The OpenWeatherMap Key
+	 */
+	private String getApiKey() {
+		// Precedence: Read from config file
+		String apiKey = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), "apiKey", null);
+		
+		if(apiKey==null) {
+			log.warning("No API Key found in configuration file. Trying environment variable as fallback");
+			apiKey = System.getenv("PICTUREPI_OPENWEATHERMAPAPIKEY");
+			
+			if(apiKey==null) {
+				log.severe("No OpenWeatherMap API Key found");
+			}
+		}
+		
+		return apiKey;
+	}
 	
 	/**
 	 * builds the URL for OpenWeatherMap
@@ -65,7 +85,6 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 	 */
 	URL buildUrl() {
 		final String BASE_URL  = "https://api.openweathermap.org/data/3.0/onecall";
-		final String API_KEY   = "c38c5b6c88b6c70b98209a0f5427e779"; // PicturePi API key for OpenWeatherMap
 		
 		URL    url = null;
 		Double longitude = Configuration.getConfiguration().getValue(WeatherPanel.class.getSimpleName(), "longitude", 0.0);
@@ -74,10 +93,16 @@ public class WeatherProvider extends Provider implements IMqttMessageListener {
 			log.severe("No longitude or latitude found in configuration file. No weather forecast reported.");
 			return null;
 		}
+
+		String apiKey = getApiKey();
+  		if(apiKey==null) {
+   			log.severe("No OpenWeatherMap API Key found. No weather forecast reported.");
+   			return null;
+  		}
 		
 		
 		try {
-			url = new URL(String.format("%s?lat=%f&lon=%f&units=metric&lang=de&exclude=current,minutely,hourly,alerts&appid=%s",BASE_URL,latitude,longitude,API_KEY));
+			url = new URL(String.format("%s?lat=%f&lon=%f&units=metric&lang=de&exclude=current,minutely,hourly,alerts&appid=%s",BASE_URL,latitude,longitude,apiKey));
 		} catch (MalformedURLException e) {
 			log.severe("Unable to create URL: MalformedURLException: "+e.getMessage());
 		}

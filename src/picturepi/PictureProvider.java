@@ -84,7 +84,7 @@ public class PictureProvider extends Provider {
 
 				// get number of pictures to display per day
 				int picturesPerDay = Configuration.getConfiguration().getValue("PicturePanel", "picturesPerDay", 100);
-				log.fine("pictures to display per day: "+picturesPerDay);
+				log.config("pictures to display per day: "+picturesPerDay);
 
 				// collect all pictures and map them to their date
 				createPictureDateList();
@@ -93,19 +93,19 @@ public class PictureProvider extends Provider {
 				// add all pictures taken on todays day, at any year
 				List<File> pictureListOfDay = getPicturesOfDay(LocalDate.now());
 				int picturesOfDay = pictureListOfDay.size();
-				log.fine("found "+picturesOfDay+" pictures taken today");
+				log.config("found "+picturesOfDay+" pictures taken today");
 				imageList.addAll(pictureListOfDay);
 
 				// add all pictures taken in the month, but not on todays day
 				List<File> pictureListOfMonth = getPicturesOfMonth(LocalDate.now());
 				int picturesOfMonth = pictureListOfMonth.size();
-				log.fine("found "+picturesOfMonth+" pictures taken this month");
+				log.config("found "+picturesOfMonth+" pictures taken this month");
 				imageList.addAll(pictureListOfMonth);
 
 				if(picturesOfDay+picturesOfMonth<picturesPerDay) {
 					// add pictures from other months until we have enough
 					int picturesFromOtherMonths = picturesPerDay - picturesOfDay - picturesOfMonth;
-					log.fine("adding "+picturesFromOtherMonths+" pictures from other months");
+					log.config("adding "+picturesFromOtherMonths+" pictures from other months");
 
 					// get all pictures from the list
 					List<File> pictureList = pictureDateList.stream().map(p -> p.file).collect(Collectors.toList());
@@ -163,6 +163,11 @@ public class PictureProvider extends Provider {
 	        double thumbRatio = (double) width / (double) height;
 	        int imageWidth = image.getWidth(null);
 	        int imageHeight = image.getHeight(null);
+			if(imageWidth <= 0 || imageHeight <= 0) {
+				log.warning("image width or height is zero, cannot scale image : "+file);
+				return;
+		 	}
+
 	        double aspectRatio = (double) imageWidth / (double) imageHeight;
 
 	        if (thumbRatio < aspectRatio) {
