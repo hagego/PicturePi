@@ -440,7 +440,7 @@ public class PicturePi implements IMqttMessageListener,Runnable,MouseListener {
 						log.fine("motion detected period still active but no active motion detected, remaining time [s]: "+displayOnCounter/1000);
 					}
 					else {
-						log.fine("motion detected period active and active motion detected");
+						log.finest("motion detected period active and active motion detected");
 					}
 
 					if(displayOnCounter<=0) {
@@ -720,7 +720,7 @@ public class PicturePi implements IMqttMessageListener,Runnable,MouseListener {
 				motionDetectedPeriod = true;
 				motionDetected	     = true;
 				displayOnCounter	 = motionDetectedOnTime*1000;
-				log.fine("(re-)started motion detected period, on-time [s]: "+motionDetectedOnTime);
+				log.fine("motion detected ON received, on-time [s]: "+motionDetectedOnTime);
 
 				if(scheduledViewActive) {
 					// enable display
